@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+build/
+dist/
+
+# Entorno virtual
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Java (juego de referencia)
+pc_02_tetris/
