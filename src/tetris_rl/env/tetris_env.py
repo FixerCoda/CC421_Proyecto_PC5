@@ -1,25 +1,38 @@
-"""Entorno de Tetris de 1 jugador con API estilo Gymnasium.
+"""Entorno de Tetris de 1 jugador, formulación por colocación.
 
-Versión inicial por frame:
-- En cada step se aplica una acción de control (mover/rotar) y luego un 
-tick de gravedad.
-- La pieza se fija al aterrizar y se genera la siguiente desde un RNG 
-sembrado (reproducible).
+Refactor desde la versión por-frame:
+- En lugar de controlar la pieza frame a frame, el agente elige una 
+colocación (rotación, columna).
+- La pieza cae en hard-drop, se fija y se limpian las líneas. 
+- Cada decisión produce un afterstate (el tablero resultante), que es lo 
+que evalúa la política RL. Es la formulación natural y eficiente para 
+Tetris basado en características (una decisión por pieza).
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from .board import Board
 from .engine import CollisionEngine
-from .pieces import NAMES, PIECES, Piece
+from .pieces import NAMES, PIECES, Piece, num_rotations
 
 import numpy as np
 
-# Acciones de control por frame.
-NOOP, LEFT, RIGHT, ROTATE_CW, ROTATE_CCW, SOFT_DROP = range(6)
 
-Observation = dict[str, object]
-StepResult = tuple[Observation, int, bool, bool, dict[str, int]]
+@dataclass(frozen=True)
+class Placement:
+    """Una colocación posible de la pieza actual y su afterstate resultante."""
+
+    rotation: int
+    x: int
+    landing_y: int
+    afterstate: np.ndarray  # tablero tras fijar la pieza y limpiar líneas
+    lines: int              # líneas eliminadas por esta colocación
+
+
+State = dict[str, object]
+StepResult = tuple[State, int, bool, dict[str, int]]
 
 
 class TetrisEnv:
@@ -39,83 +52,81 @@ class TetrisEnv:
         self.lines_cleared = 0
         self.done = False
 
-    # Ciclo de vida 
-    def reset(self, seed: int | None = None) -> Observation:
+    # Ciclo de vida
+    def reset(self, seed: int | None = None) -> State:
         if seed is not None:
             self._rng = np.random.default_rng(seed)
         self.board = Board(self.rows, self.cols)
         self.lines_cleared = 0
         self.done = False
         self.piece = self._spawn_piece()
-        if self.piece is None:
+        if self.piece is None or not self.legal_placements():
             self.done = True
-        return self._observation()
+        return self._state()
 
-    def step(self, action: int) -> StepResult:
-        if self.done or self.piece is None:
-            return self._observation(), 0, True, False, {"lines": 0}
+    def legal_placements(self) -> list[Placement]:
+        """Colocaciones válidas de la pieza actual, con su afterstate y líneas.
 
-        piece = self.piece  # local no-None: estable ante llamadas a métodos
-        self._apply_control(piece, action)
-        reward = self._gravity_tick(piece)
-        return self._observation(), reward, self.done, False, {"lines": reward}
+        Para cada rotación y columna factible, deja caer la pieza en hard-drop,
+        la fija sobre una copia del tablero y limpia líneas. El resultado es el
+        afterstate que la política RL evaluará con φ.
+        """
+        piece = self.piece
+        if piece is None:
+            return []
+        placements: list[Placement] = []
+        name = piece.name
+        for rotation in range(num_rotations(name)):
+            width = PIECES[name][rotation].shape[1]
+            for x in range(self.cols - width + 1):
+                candidate = Piece(name, x=x, y=0, rotation=rotation)
+                if not self.engine.is_valid_move(candidate, self.board, 0, 0):
+                    continue  # la pila llega arriba en esa columna
+                while self.engine.is_valid_move(candidate, self.board, 0, 1):
+                    candidate.move_down()
+                after = self.board.copy()
+                for (yy, xx) in candidate.cells():
+                    after.lock_block(xx, yy, 1)
+                lines = after.clear_lines()
+                placements.append(
+                    Placement(rotation=rotation, x=x, landing_y=candidate.y,
+                              afterstate=after.grid, lines=lines)
+                )
+        return placements
+
+    def step(self, placement: Placement) -> StepResult:
+        """Aplica una colocación: adopta su afterstate y genera la pieza siguiente."""
+        if self.done:
+            return self._state(), 0, True, {"lines": 0}
+        self.board = Board(grid=placement.afterstate)
+        self.lines_cleared += placement.lines
+        self.piece = self._spawn_piece()
+        if self.piece is None or not self.legal_placements():
+            self.done = True
+        return self._state(), placement.lines, self.done, {"lines": placement.lines}
 
     # Mecánica interna
     def _spawn_piece(self) -> Piece | None:
         name = NAMES[int(self._rng.integers(len(NAMES)))]
-        shape_cols = PIECES[name][0].shape[1]
-        x = (self.cols - shape_cols) // 2
+        width = PIECES[name][0].shape[1]
+        x = (self.cols - width) // 2
         piece = Piece(name, x=x, y=0, rotation=0)
         if not self.engine.is_valid_move(piece, self.board, 0, 0):
             return None  # top-out: no cabe ni al aparecer
         return piece
 
-    def _apply_control(self, piece: Piece, action: int) -> None:
-        board, engine = self.board, self.engine
-        if action == LEFT and engine.is_valid_move(piece, board, -1, 0):
-            piece.move_left()
-        elif action == RIGHT and engine.is_valid_move(piece, board, 1, 0):
-            piece.move_right()
-        elif action == ROTATE_CW and engine.is_valid_rotation(piece, board, 1):
-            piece.rotate_right()
-        elif action == ROTATE_CCW and engine.is_valid_rotation(piece, board, -1):
-            piece.rotate_left()
-        elif action == SOFT_DROP and engine.is_valid_move(piece, board, 0, 1):
-            piece.move_down()
-
-    def _gravity_tick(self, piece: Piece) -> int:
-        """Baja la pieza un paso; si no puede, la fija y limpia líneas."""
-        if self.engine.is_valid_move(piece, self.board, 0, 1):
-            piece.move_down()
-            return 0
-        # aterriza: fijar bloques y limpiar líneas
-        for (y, x) in piece.cells():
-            self.board.lock_block(x, y, 1)
-        cleared = self.board.clear_lines()
-        self.lines_cleared += cleared
-        self.piece = self._spawn_piece()
-        if self.piece is None:
-            self.done = True
-        return cleared
-
     # Observación / Render
-    def _observation(self) -> Observation:
+    def _state(self) -> State:
         piece = self.piece
         return {
             "board": self.board.grid.copy(),
-            "piece": None if piece is None else {
-                "name": piece.name,
-                "rotation": piece.rotation,
-                "x": piece.x,
-                "y": piece.y,
-            },
+            "piece": None if piece is None else piece.name,
+            "done": self.done,
+            "lines_cleared": self.lines_cleared,
         }
 
     def render(self) -> str:
-        grid = self.board.grid.copy()
-        piece = self.piece
-        if piece is not None:
-            for (y, x) in piece.cells():
-                grid[y, x] = 2
+        grid = self.board.grid
+        header = f"Pieza: {self.piece.name if self.piece is not None else '-'}"
         rows = ["|" + "".join("[]" if v else " ." for v in row) + "|" for row in grid]
-        return "\n".join(rows) + f"\nLíneas: {self.lines_cleared}"
+        return header + "\n" + "\n".join(rows) + f"\nLíneas: {self.lines_cleared}"
