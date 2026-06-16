@@ -1,0 +1,138 @@
+% Sección: formulación del problema como MDP.
+\section{Modelo: formulación como MDP}
+\label{sec:mdp}
+
+Modelamos Tetris como un proceso de decisión de Markov (MDP) episódico
+$\mathcal{M} = (\mathcal{S}, \mathcal{A}, P, R, \gamma)$. El carácter \emph{episódico} proviene de
+que toda partida termina en un estado absorbente (\emph{top-out}) tras un número
+finito de pasos, lo que da un retorno bien definido sin necesidad de descuento.
+
+\subsection{Elementos}
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Estado} $s = (b, p)$: tablero $b \in \{0,1\}^{H\times W}$
+          ($H=20$, $W=10$) y pieza actual $p \in \{1,\dots,7\}$. Un estado
+          alcanzable nunca contiene una fila completa, pues se elimina al fijar.
+    \item \textbf{Acciones} $\mathcal{A}(s) = \{(r,c)\}$: una \emph{colocación} es
+          una rotación $r$ y una columna de anclaje $c$ factibles para la pieza
+          actual (Sección~\ref{subsec:acciones}).
+    \item \textbf{Transición} $P(s' \mid s, a)$: factoriza en una parte
+          determinista y una aleatoria (Sección~\ref{subsec:transicion}).
+    \item \textbf{Recompensa} $R(s, a) = L(s, a)$: líneas eliminadas por la
+          colocación (Sección~\ref{subsec:recompensa}).
+    \item \textbf{Descuento} $\gamma = 1$ (Sección~\ref{subsec:decisiones}).
+\end{itemize}
+
+\subsection{Terminología}
+Un \emph{tetrominó} es una pieza de cuatro celdas; empleamos los siete estándar
+($I, O, T, S, Z, J, L$), cada uno con entre una y cuatro \emph{rotaciones}. El
+\emph{hard-drop} deja caer la pieza en línea recta hasta que apoya y la
+\emph{fija} (\emph{lock}); el \emph{soft-drop} es una caída controlada que todavía
+permite maniobrar. Al fijarse, toda fila completa se elimina (\emph{line clear})
+y las superiores descienden. El \emph{afterstate} $\sigma$ es el tablero
+resultante tras fijar y limpiar, antes de revelar la pieza siguiente
+(\emph{spawn}). La partida termina en \emph{top-out} cuando la nueva pieza no
+admite ninguna colocación. Llamamos \emph{hueco} a una celda vacía con alguna
+celda ocupada por encima, \emph{pozo} a una columna estrecha y profunda, y
+\emph{altura} de la columna $j$ a $h_j = H - \min\{\, i : b_{i,j} = 1 \,\}$.
+
+\subsection{Acciones por colocación: finitud y cota}
+\label{subsec:acciones}
+Cada acción es un par $(r, c)$. El número de rotaciones distintas de cualquier
+tetrominó es a lo sumo $4$. Fijada una rotación de ancho $w_r$ con
+$1 \le w_r \le 4$, las columnas de anclaje válidas son $W - w_r + 1 \le W$. En
+consecuencia,
+\[
+    |\mathcal{A}(s)| \;\le\; \sum_{r} (W - w_r + 1) \;\le\; 4W,
+\]
+y $\mathcal{A}(s)$ es finito por ser un producto de conjuntos finitos (rotaciones
+y columnas). El conteo real es menor, ya que se descartan las colocaciones que
+desbordan la pila. La formulación por colocación reduce el control a \emph{una
+    decisión por pieza}.
+
+\subsection{Transición y mapa de colocación}
+\label{subsec:transicion}
+El estado siguiente tiene dos componentes, $s' = (\sigma', p')$ (el tablero y la
+pieza siguiente), así que la transición es una distribución \emph{conjunta}. La
+descomponemos con la regla de la cadena:
+\begin{equation}
+    P\big( (\sigma', p') \mid s, a \big)
+    = \mathbb{P}(\sigma' \mid s, a)\;\cdot\;\mathbb{P}(p' \mid \sigma', s, a).
+    \label{eq:cadena}
+\end{equation}
+El \emph{mapa de colocación} $\sigma = f(s, a)$ es determinista: dado $(s, a)$, el
+hard-drop más la limpieza de líneas producen un \emph{único} tablero. Una
+distribución con toda su masa en un solo valor es una delta, que escribimos con la
+función indicadora
+\begin{equation}
+    \mathbf{1}\{C\} =
+    \begin{cases}
+        1 & \text{si la condición } C \text{ es verdadera}, \\[2pt]
+        0 & \text{en caso contrario},
+    \end{cases}
+\end{equation}
+de modo que el primer factor de \eqref{eq:cadena} es
+\begin{equation}
+    \mathbb{P}(\sigma' \mid s, a) = \mathbf{1}\{\sigma' = f(s, a)\}.
+    \label{eq:delta}
+\end{equation}
+El segundo factor es la pieza siguiente, que se sortea de forma independiente del
+tablero, de la acción y de la historia (es exógena), y la modelamos uniforme sobre
+las siete:
+\begin{equation}
+    \mathbb{P}(p' \mid \sigma', s, a) = \mathbb{P}(p') = \tfrac{1}{7},
+    \qquad p' \sim \mathrm{Unif}\{1, \dots, 7\}.
+    \label{eq:pieza}
+\end{equation}
+Sustituyendo \eqref{eq:delta} y \eqref{eq:pieza} en \eqref{eq:cadena} se obtiene la
+transición:
+\begin{equation}
+    P\big( (\sigma', p') \mid s, a \big)
+    = \mathbf{1}\{\sigma' = f(s, a)\}\;\cdot\;\tfrac{1}{7}.
+    \label{eq:transicion}
+\end{equation}
+Es decir, desde $(s, a)$ solo son alcanzables los siete sucesores
+$(\sigma, 1), \dots, (\sigma, 7)$ y equiprobables; para cualquier $\sigma' \neq f(s, a)$ la probabilidad es
+nula. Elegir el generador independiente (i.i.d.) preserva la propiedad de Markov
+sin ampliar el estado: un aleatorizador por bolsas (\emph{7-bag}) obligaría a
+recordar las piezas ya emitidas. Esta factorización es la que habilita trabajar con el afterstate $\sigma$
+(Sección~\ref{sec:valor}).
+
+\subsection{Recompensa y su rango}
+\label{subsec:recompensa}
+$L(s, a)$ es el número de filas completas eliminadas por la colocación. Como un
+tetrominó ocupa cuatro celdas repartidas en a lo sumo cuatro filas, y una fila
+solo puede completarse si la pieza aporta alguna celda a ella, se eliminan a lo
+sumo cuatro filas. El mínimo $0$ (ninguna fila completada) y el máximo $4$ (una
+$I$ vertical que cierra cuatro filas a la vez, un \emph{Tetris}) son alcanzables,
+de modo que
+\[
+    L(s, a) \in \{0, 1, 2, 3, 4\}.
+\]
+
+\subsection{Decisiones de modelado}
+\label{subsec:decisiones}
+\paragraph{Recompensa.} Tomamos $R = L$ porque el objetivo del problema es
+maximizar el total de líneas de la partida: es una señal acotada y directamente
+alineada con la métrica de evaluación.
+
+\paragraph{Descuento $\gamma = 1$.} Toda línea vale igual sin importar cuándo se
+elimina; un $\gamma < 1$ introduciría un sesgo temporal (preferir limpiar antes)
+ajeno al objetivo, que además penalizaría acumular para un \emph{Tetris}. Al ser
+la tarea episódica y terminar casi seguramente, la suma no descontada es finita;
+y el optimizador (CEM) maximiza $J(w) = \mathbb{E}[\sum_t R_t]$ de forma directa,
+sin \emph{bootstrapping}, por lo que $\gamma = 1$ equivale a ``sumar las líneas''.
+En evaluación se acota la longitud del episodio para mantener $J$ finito.
+
+\paragraph{Abstracción del tiempo.} El modelo prescinde de la tasa de refresco
+(\emph{frame rate}) y del tiempo real: un paso del MDP equivale a \emph{una pieza
+    colocada}, y la dinámica intra-pieza (gravedad, soft-drop, desplazamientos
+laterales) se colapsa en la elección de la posición final más el hard-drop. Se
+asume, pues, una \emph{decisión inmediata}: lo relevante para la calidad de la
+política es \emph{dónde} reposa la pieza, no la trayectoria ni el cronometraje
+para llevarla allí. Como implicación directa, \textbf{no se modelan las maniobras
+    que requieren rotar o desplazar la pieza durante la caída} (\emph{tucks},
+\emph{T-spins}): $\mathcal{A}(s)$ enumera únicamente las caídas rectas alcanzables
+por hard-drop. Tampoco se modelan la aceleración de la gravedad por nivel ni el
+puntaje por soft-drop. El bucle de frames solo sería relevante para una
+demostración en vivo, donde la colocación elegida se traduciría a una secuencia
+de entradas de control.
