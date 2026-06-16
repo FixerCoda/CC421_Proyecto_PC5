@@ -1,0 +1,32 @@
+% Documento principal del informe.
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\title{Optimización de Políticas de Juego en Entornos Dinámicos (Tetris)\\
+mediante Aprendizaje por Refuerzo y Extracción de Características}
+\author{Equipo del curso CC421 -- Inteligencia Artificial}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% --- Modelado / Algoritmia ---
+\input{secciones/modelo_mdp}
+\input{secciones/valor_politica}
+\input{secciones/cem}
+\input{secciones/caracteristicas}
+\input{secciones/algoritmo}
+
+\bibliographystyle{apalike}
+\bibliography{referencias}
+
+\end{document}
