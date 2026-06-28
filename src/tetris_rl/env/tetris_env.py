@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .board import Board
-from .engine import CollisionEngine
+from .engine import is_valid_move, drop, lock_and_clear
 from .pieces import NAMES, PIECES, Piece, num_rotations
 
 import numpy as np
@@ -43,7 +43,6 @@ class TetrisEnv:
     def __init__(self, rows: int = 20, cols: int = 10, seed: int | None = None):
         self.rows = rows
         self.cols = cols
-        self.engine = CollisionEngine()
         self._rng = np.random.default_rng(seed)
         # El tablero siempre existe (se reasigna en reset) y la pieza puede ser
         # None tras un top-out.
@@ -74,23 +73,29 @@ class TetrisEnv:
         piece = self.piece
         if piece is None:
             return []
+        
         placements: list[Placement] = []
         name = piece.name
+        board_grid = self.board.grid
+        
         for rotation in range(num_rotations(name)):
-            width = PIECES[name][rotation].shape[1]
+            shape = PIECES[name][rotation]
+            width = shape.shape[1]
+            
             for x in range(self.cols - width + 1):
-                candidate = Piece(name, x=x, y=0, rotation=rotation)
-                if not self.engine.is_valid_move(candidate, self.board, 0, 0):
-                    continue  # la pila llega arriba en esa columna
-                while self.engine.is_valid_move(candidate, self.board, 0, 1):
-                    candidate.move_down()
-                after = self.board.copy()
-                for (yy, xx) in candidate.cells():
-                    after.lock_block(xx, yy, 1)
-                lines = after.clear_lines()
+                # 1. Chequeo de validez inicial vía Numba
+                if not is_valid_move(board_grid, shape, x, 0):
+                    continue
+                
+                # 2. Hard-drop delegando el bucle a Numba
+                landing_y = drop(board_grid, shape, x, 0)
+                
+                # 3. Fijar y limpiar delegando la mutación de arrays a Numba
+                afterstate, lines = lock_and_clear(board_grid, shape, x, landing_y)
+                
                 placements.append(
-                    Placement(rotation=rotation, x=x, landing_y=candidate.y,
-                              afterstate=after.grid, lines=lines)
+                    Placement(rotation=rotation, x=x, landing_y=landing_y,
+                              afterstate=afterstate, lines=lines)
                 )
         return placements
 
@@ -117,12 +122,15 @@ class TetrisEnv:
     # Mecánica interna
     def _spawn_piece(self) -> Piece | None:
         name = NAMES[int(self._rng.integers(len(NAMES)))]
-        width = PIECES[name][0].shape[1]
+        shape = PIECES[name][0]
+        width = shape.shape[1]
         x = (self.cols - width) // 2
-        piece = Piece(name, x=x, y=0, rotation=0)
-        if not self.engine.is_valid_move(piece, self.board, 0, 0):
+        
+        # Validación inicial usando Numba sobre la matriz primitiva
+        if not is_valid_move(self.board.grid, shape, x, 0):
             return None  # top-out: no cabe ni al aparecer
-        return piece
+            
+        return Piece(name, x=x, y=0, rotation=0)
 
     # Observación / Render
     def _state(self) -> State:

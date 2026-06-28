@@ -1,5 +1,5 @@
 """Script principal para entrenar el agente TD(0) en Tetris.
-Versión: Paralelización Asíncrona con Memoria Compartida (Sin Mini-batch).
+Versión: Paralelización Asíncrona.
 """
 
 import os
@@ -13,8 +13,7 @@ from src.tetris_rl.env.tetris_env import TetrisEnv
 from src.tetris_rl.agents.td_agent import TDAgent
 from src.tetris_rl.features import FEATURE_NAMES
 
-# --- Variables Globales para los Trabajadores (Workers) ---
-# Estas variables apuntarán a la memoria RAM compartida entre todos los núcleos
+# Variables globales para apuntar a la RAM compartida
 shared_weights_array = None
 shared_lock = None
 
@@ -26,8 +25,12 @@ def init_worker(shared_arr, lock_obj):
     shared_lock = lock_obj
 
 def play_episode_async(args):
-    """Juega un episodio y suma su aprendizaje directamente a la memoria global."""
-    episode_id, alpha, gamma, epsilon, max_steps = args
+    """Juega un episodio HASTA PERDER (sin límite) y sincroniza su aprendizaje."""
+    global shared_weights_array, shared_lock
+    assert shared_lock is not None
+    assert shared_weights_array is not None
+    
+    episode_id, alpha, gamma, epsilon = args
     
     env = TetrisEnv()
     
@@ -35,14 +38,17 @@ def play_episode_async(args):
     with shared_lock:
         local_weights = np.array(shared_weights_array[:], dtype=np.float64)
         
-    agent = TDAgent(alpha=alpha, gamma=gamma, epsilon=epsilon, weights=local_weights)
+    agent = TDAgent(alpha=alpha, gamma=gamma, epsilon=epsilon, weights=local_weights.copy())
     
     env.reset()
     placements = env.legal_placements()
     action = agent.select(placements)
     
     step_count = 0
-    while not env.done and action is not None and step_count < max_steps:
+    sync_frequency = 1000  # Sincronizamos aprendizaje cada 1000 piezas colocadas
+    
+    # Bucle de juego infinito (solo se rompe si el agente pierde)
+    while not env.done and action is not None:
         step_count += 1
         phi_current = agent._get_phi(action)
         
@@ -63,7 +69,19 @@ def play_episode_async(args):
         agent.update(phi_current, reward, phi_next)
         action = next_action
         
-    # 2. Calculamos TODO lo que este hilo aprendió (el Delta completo)
+        # --- Sincronización en Caliente ---
+        # Si el agente es muy bueno, transfiere su conocimiento sin detener la partida
+        if step_count % sync_frequency == 0:
+            delta_w = agent.weights - local_weights
+            with shared_lock:
+                for i in range(len(shared_weights_array)):
+                    shared_weights_array[i] += delta_w[i]
+                # Leemos la sabiduría combinada actual de todos los núcleos
+                local_weights = np.array(shared_weights_array[:], dtype=np.float64)
+            # Actualizamos la base del agente
+            agent.weights = local_weights.copy()
+            
+    # Sincronización final al terminar (Game Over)
     delta_w = agent.weights - local_weights
     
     # 3. Sumamos nuestro Delta a los pesos globales directamente en RAM
@@ -79,8 +97,7 @@ def train(
     gamma: float = 0.99,
     initial_epsilon: float = 0.5,
     min_epsilon: float = 0.01,
-    epsilon_decay_episodes: int = 1500,
-    max_steps_per_episode: int = 2000
+    epsilon_decay_episodes: int = 1500
 ):
     num_cores = max(1, mp.cpu_count() - 1)
     print(f"--- Iniciando Entrenamiento Asíncrono en {num_cores} núcleos ---")
@@ -96,7 +113,7 @@ def train(
         return min_epsilon
 
     worker_args = [
-        (ep, alpha, gamma, get_eps(ep), max_steps_per_episode) 
+        (ep, alpha, gamma, get_eps(ep)) 
         for ep in range(1, total_episodes + 1)
     ]
     
@@ -125,8 +142,7 @@ def train(
                 avg_lines = np.mean(history_lines[-100:])
                 max_lines = np.max(history_lines[-100:])
                 weights_str = ", ".join([f"{w:5.2f}" for w in current_weights])
-                # Estimamos el epsilon actual basándonos en el episodio completado
-                current_eps = get_eps(completed_episodes) 
+                current_eps = get_eps(completed_episodes)
                 print(f"Episodios {completed_episodes-99:4d}-{completed_episodes:4d} | Líneas (Promedio: {avg_lines:5.1f} | Max: {max_lines:4d}) | eps: {current_eps:.3f}")
                 print(f"   Pesos: [{weights_str}]")
 
@@ -150,7 +166,7 @@ def train(
     if len(history_lines) >= window:
         ma = np.convolve(history_lines, np.ones(window)/window, mode='valid')
         plt.plot(range(window-1, len(history_lines)), ma, color='red', linewidth=2, label=f'Media móvil ({window})')
-    plt.title(f'Curva de Aprendizaje Asíncrona (Truncado a {max_steps_per_episode} pasos)')
+    plt.title('Curva de Aprendizaje Asíncrona')
     plt.xlabel('Episodios Completados')
     plt.ylabel('Líneas')
     plt.legend()
