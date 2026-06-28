@@ -32,7 +32,7 @@ class Placement:
 
 
 State = dict[str, object]
-StepResult = tuple[State, int, bool, dict[str, int]]
+StepResult = tuple[State, float, bool, dict[str, int]]
 
 
 class TetrisEnv:
@@ -97,13 +97,22 @@ class TetrisEnv:
     def step(self, placement: Placement) -> StepResult:
         """Aplica una colocación: adopta su afterstate y genera la pieza siguiente."""
         if self.done:
-            return self._state(), 0, True, {"lines": 0}
+            return self._state(), 0.0, True, {"lines": 0}
         self.board = Board(grid=placement.afterstate)
         self.lines_cleared += placement.lines
         self.piece = self._spawn_piece()
         if self.piece is None or not self.legal_placements():
             self.done = True
-        return self._state(), placement.lines, self.done, {"lines": placement.lines}
+        
+        # --- Cimiento 1: Función de Recompensa R(s, a, s') ---
+        # Recompensa por limpiar líneas (la convertimos a float para el descenso de gradiente)
+        reward = float(placement.lines**2)
+        
+        # Penalización crítica: si la acción lo lleva a un estado terminal (game over)
+        if self.done:
+            reward -= 100.0
+            
+        return self._state(), reward, self.done, {"lines": placement.lines}
 
     # Mecánica interna
     def _spawn_piece(self) -> Piece | None:
