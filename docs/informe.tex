@@ -11,6 +11,18 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usetikzlibrary{calc}
+\addto\captionsspanish{
+\renewcommand{\tablename}{Tabla}
+}
+
 \title{Optimización de Políticas de Juego en Entornos Dinámicos (Tetris)\\
 mediante Aprendizaje por Refuerzo y Extracción de Características}
 \author{Equipo del curso CC421 -- Inteligencia Artificial}
@@ -20,12 +32,25 @@ mediante Aprendizaje por Refuerzo y Extracción de Características}
 \maketitle
 
 % --- Modelado / Algoritmia ---
+\input{secciones/resumen}
+\input{secciones/introduccion}
+\input{secciones/estado_arte}
+
 \input{secciones/modelo_mdp}
-\input{secciones/valor_politica}
-\input{secciones/cem}
 \input{secciones/caracteristicas}
+\input{secciones/valor_politica}
+
+\input{secciones/td_learning}
+\input{secciones/cem}
 \input{secciones/algoritmo}
 
+\input{secciones/arquitectura}
+\input{secciones/diseno_experimental}
+\input{secciones/resultados}
+\input{secciones/discusion}
+\input{secciones/conclusiones}
+
+\nocite{*}
 \bibliographystyle{apalike}
 \bibliography{referencias}
 
