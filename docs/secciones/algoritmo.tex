@@ -1,0 +1,45 @@
+\section{Algoritmo General de Entrenamiento}
+\label{sec:algoritmo}
+
+El procedimiento general de entrenamiento del agente se resume en el Algoritmo~\ref{alg:training}.
+
+\begin{algorithm}[H]
+\caption{Entrenamiento del Agente}
+\label{alg:training}
+\begin{algorithmic}[1]
+
+\State Inicializar el entorno Tetris
+\State Inicializar los parametros del modelo
+
+\For{cada episodio de entrenamiento}
+
+    \State Reiniciar el tablero
+    \State Obtener el estado inicial
+
+    \While{el episodio no haya terminado}
+
+        \State Generar las acciones factibles
+        \State Evaluar los afterstates
+        \State Seleccionar una accion
+        \State Ejecutar la accion
+        \State Obtener recompensa y siguiente estado
+
+        \If{se utiliza TD(0)}
+            \State Actualizar los pesos mediante la ecuacion de Diferencia Temporal
+        \EndIf
+
+    \EndWhile
+
+\EndFor
+
+\If{se utiliza CEM}
+    \State Generar poblacion de candidatos
+    \State Evaluar cada individuo
+    \State Seleccionar conjunto elite
+    \State Actualizar la distribucion de parametros
+\EndIf
+
+\State Devolver el mejor vector de pesos encontrado.
+
+\end{algorithmic}
+\end{algorithm}

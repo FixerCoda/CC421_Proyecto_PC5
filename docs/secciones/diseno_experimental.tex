@@ -1,0 +1,47 @@
+\section{Diseño Experimental}
+\label{sec:experimentos}
+
+Con el propósito de determinar la configuración de entrenamiento más adecuada para el agente de Aprendizaje por Refuerzo, se realizó un barrido exhaustivo de hiperparámetros mediante una estrategia de búsqueda en malla (\emph{Grid Search}).
+
+Se consideraron tres valores para el factor de descuento, tres valores para la tasa de aprendizaje y tres configuraciones para el decaimiento del parámetro de exploración, dando lugar a un total de
+
+\begin{equation}
+N_{\text{exp}} = 3 \times 3 \times 3 = 27
+\end{equation}
+
+configuraciones independientes de entrenamiento.
+
+Los hiperparámetros evaluados fueron los siguientes:
+
+\begin{itemize}
+\item Factor de descuento:
+\begin{equation}
+\gamma \in \{0.90,\;0.99,\;0.999\}.
+\end{equation}
+
+\item Tasa de aprendizaje:
+\begin{equation}
+\alpha \in \{ {10^{-3}, 5\times10^{-4}, 10^{-4}} \} 
+\end{equation}
+
+\item Número de episodios de decaimiento de la exploración:
+\begin{equation}
+N_{\varepsilon}
+\in
+\{1000;1500;1800 \}
+\end{equation}
+\end{itemize}
+
+Cada configuración fue entrenada de manera independiente y posteriormente evaluada mediante el número promedio de líneas eliminadas antes de alcanzar el estado terminal del juego.
+
+La métrica de evaluación utilizada fue
+
+\begin{equation}
+J = \frac{1}{N}
+\sum_{i=1}^{N}
+L_i,
+\end{equation}
+
+donde $L_i$ representa el número de líneas eliminadas en el episodio $i$ y $N$ corresponde al número total de episodios de evaluación.
+
+La elección de esta métrica obedece a que el objetivo principal del agente consiste en maximizar la supervivencia y el número de líneas eliminadas durante una partida de Tetris.

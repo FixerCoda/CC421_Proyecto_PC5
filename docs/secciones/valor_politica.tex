@@ -1,0 +1,67 @@
+\section{Funcion de Valor y Politica}
+\label{sec:valor}
+
+El objetivo del agente es aprender una politica de decision que maximice el numero esperado de lineas eliminadas durante una partida de Tetris.
+
+Una politica se denota por $\pi$ y determina que accion debe ejecutar el agente en cada estado. En este trabajo, una accion corresponde a elegir una rotacion y una columna de colocacion para la pieza actual.
+
+El retorno acumulado desde un instante $t$ se define como:
+
+\begin{equation}
+G_t =
+\sum_{k=0}^{T-t-1}
+\gamma^k R_{t+k+1},
+\end{equation}
+
+donde $T$ es el instante en el que termina la partida, $R_{t+k+1}$ es la recompensa obtenida y $\gamma$ es el factor de descuento.
+
+La funcion de valor bajo una politica $\pi$ se define como:
+
+\begin{equation}
+V^{\pi}(s) =
+E_{\pi}
+\left(
+G_t \mid S_t = s
+\right).
+\end{equation}
+
+Esta funcion estima que tan conveniente es encontrarse en el estado $s$ si el agente continua actuando de acuerdo con la politica $\pi$.
+
+Debido a que Tetris posee una cantidad muy grande de estados posibles, no se utiliza una tabla de valores. En su lugar, se aproxima la funcion de valor mediante una combinacion lineal de caracteristicas:
+
+\begin{equation}
+V(s;w) =
+w^{T}\phi(s).
+\end{equation}
+
+En esta expresion, $\phi(s)$ es el vector de caracteristicas del estado y $w$ es el vector de pesos aprendidos. Cada peso indica la importancia de una caracteristica dentro de la evaluacion del tablero.
+
+Para elegir una accion, el agente genera todas las colocaciones posibles de la pieza actual. Cada accion produce un tablero resultante o afterstate. Luego, el agente evalua cada afterstate mediante la funcion de valor y selecciona la accion con mayor valor estimado:
+
+\begin{equation}
+\pi(s) =
+\arg\max_{a \in A(s)}
+V(f(s,a);w).
+\end{equation}
+
+Aqui, $A(s)$ es el conjunto de acciones disponibles en el estado $s$, y $f(s,a)$ representa el tablero resultante despues de ejecutar la accion $a$.
+
+Por tanto, el problema de aprendizaje consiste en encontrar un vector de pesos $w$ que permita evaluar correctamente los tableros y seleccionar mejores acciones. Esto puede expresarse como:
+
+\begin{equation}
+w^{*} =
+\arg\max_{w} J(w).
+\end{equation}
+
+La funcion objetivo $J(w)$ representa el desempeno esperado del agente:
+
+\begin{equation}
+J(w) =
+E
+\left(
+\sum_{t=0}^{T}
+R_t
+\right).
+\end{equation}
+
+En el proyecto se consideran dos formas de obtener los pesos $w$. La primera es el aprendizaje por diferencias temporales TD(0), que actualiza los pesos durante la interaccion con el entorno. La segunda es el metodo de entropia cruzada, que busca directamente buenos vectores de pesos mediante una estrategia poblacional.

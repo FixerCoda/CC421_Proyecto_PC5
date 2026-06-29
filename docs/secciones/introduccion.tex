@@ -1,0 +1,15 @@
+\section{Introducción}
+
+La Inteligencia Artificial ha experimentado un crecimiento significativo en las últimas décadas, impulsando el desarrollo de sistemas capaces de aprender, razonar y tomar decisiones en entornos de elevada complejidad. Dentro de este contexto, el Aprendizaje por Refuerzo constituye una de las áreas de investigación más relevantes, debido a su capacidad para construir agentes que mejoran su comportamiento a partir de la interacción directa con el entorno.
+
+Los videojuegos representan un escenario particularmente adecuado para la evaluación de algoritmos de aprendizaje, ya que presentan problemas de decisión secuencial, objetivos claramente definidos y dinámicas complejas. Entre ellos, el juego Tetris ha sido ampliamente utilizado como un banco de pruebas para la investigación en Inteligencia Artificial debido a la gran dimensionalidad de su espacio de estados y al carácter estocástico de la secuencia de piezas.
+
+Desde una perspectiva computacional, la obtención de una política óptima para Tetris resulta un problema extremadamente complejo. El número de configuraciones posibles del tablero crece de manera exponencial, haciendo inviable la utilización de métodos de búsqueda exhaustiva o técnicas de enumeración completa del espacio de estados.
+
+Ante esta dificultad, se han propuesto diversas estrategias basadas en funciones heurísticas, métodos evolutivos y algoritmos de Aprendizaje por Refuerzo. Particularmente, las aproximaciones basadas en funciones de valor y representaciones compactas del tablero han demostrado ser capaces de producir políticas competitivas con un costo computacional relativamente bajo.
+
+El presente trabajo aborda el problema de Tetris mediante la construcción de un agente inteligente basado en una aproximación lineal de la función de valor. El entorno se modela formalmente como un Proceso de Decisión de Markov y los estados se representan mediante un conjunto de características geométricas extraídas del tablero de juego.
+
+Asimismo, se estudian dos estrategias de optimización de los parámetros de la función de valor. La primera emplea el algoritmo de Diferencias Temporales TD(0), permitiendo un aprendizaje incremental basado en la experiencia del agente. La segunda utiliza el Método de Entropía Cruzada, un procedimiento de optimización estocástica que busca directamente configuraciones de parámetros de alto rendimiento.
+
+El objetivo principal del trabajo consiste en analizar la capacidad de estos métodos para aprender políticas de juego eficientes y estudiar la influencia de los hiperparámetros sobre el desempeño final del agente.

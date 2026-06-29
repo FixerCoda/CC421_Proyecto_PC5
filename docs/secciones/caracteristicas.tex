@@ -1,0 +1,98 @@
+\section{Representacion mediante Caracteristicas}
+\label{sec:caracteristicas}
+
+El espacio de estados de Tetris es muy grande. Por ello, no resulta practico almacenar un valor independiente para cada configuracion posible del tablero. En su lugar, se utiliza una representacion compacta basada en caracteristicas numericas del tablero.
+
+Sea el vector de caracteristicas:
+
+\begin{equation}
+\phi(s) =
+(f_1(s), f_2(s), f_3(s), f_4(s), f_5(s), f_6(s)).
+\end{equation}
+
+Cada componente resume una propiedad relevante del tablero despues de colocar una pieza.
+
+\subsection{Altura agregada}
+
+Sea $h_j$ la altura de la columna $j$. La altura agregada se define como la suma de las alturas de todas las columnas:
+
+\begin{equation}
+f_1(s) =
+\sum_{j=1}^{W} h_j.
+\end{equation}
+
+Un valor alto de esta caracteristica indica que la pila de piezas se encuentra cerca de la parte superior del tablero.
+
+\subsection{Huecos}
+
+Un hueco es una celda vacia que tiene al menos una celda ocupada por encima en la misma columna. La cantidad total de huecos se representa como:
+
+\begin{equation}
+f_2(s) =
+\text{numero de huecos del tablero}.
+\end{equation}
+
+Esta caracteristica es importante porque los huecos dificultan la eliminacion de lineas y suelen empeorar la calidad del tablero.
+
+\subsection{Rugosidad}
+
+La rugosidad mide la irregularidad de la superficie del tablero. Se calcula como la suma de las diferencias absolutas entre alturas de columnas consecutivas:
+
+\begin{equation}
+f_3(s) =
+\sum_{j=1}^{W-1}
+|h_j - h_{j+1}|.
+\end{equation}
+
+Un tablero con alta rugosidad dificulta la colocacion eficiente de nuevas piezas.
+
+\subsection{Altura maxima}
+
+La altura maxima corresponde a la columna mas alta del tablero:
+
+\begin{equation}
+f_4(s) =
+\max_{1 \leq j \leq W} h_j.
+\end{equation}
+
+Esta caracteristica permite estimar que tan cerca se encuentra el agente del estado terminal.
+
+\subsection{Pozos}
+
+Un pozo es una columna o region vertical vacia rodeada por columnas de mayor altura. La cantidad de pozos se representa como:
+
+\begin{equation}
+f_5(s) =
+\text{numero de pozos del tablero}.
+\end{equation}
+
+Los pozos pueden ser utiles si permiten colocar una pieza larga, pero en general aumentan el riesgo si no son controlados adecuadamente.
+
+\subsection{Lineas eliminadas}
+
+El numero de lineas eliminadas despues de colocar una pieza se define como:
+
+\begin{equation}
+f_6(s) =
+L(s,a).
+\end{equation}
+
+Esta caracteristica se relaciona directamente con el objetivo principal del juego.
+
+\subsection{Vector final de caracteristicas}
+
+En conjunto, la representacion utilizada por el agente es:
+
+\begin{equation}
+\phi(s) =
+(
+\text{altura agregada},
+\text{huecos},
+\text{rugosidad},
+\text{altura maxima},
+\text{pozos},
+\text{lineas eliminadas}
+).
+\end{equation}
+
+Esta representacion permite reducir la complejidad del problema y facilita el uso de una funcion de valor lineal.

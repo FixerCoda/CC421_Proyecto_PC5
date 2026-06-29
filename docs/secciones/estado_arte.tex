@@ -1,0 +1,17 @@
+\section{Estado del Arte}
+
+El problema de Tetris ha sido objeto de investigación durante más de tres décadas y constituye uno de los entornos clásicos para el estudio de algoritmos de Inteligencia Artificial y Aprendizaje por Refuerzo. Su interés radica en la elevada dimensionalidad del espacio de estados, la incertidumbre introducida por la generación aleatoria de piezas y la necesidad de tomar decisiones secuenciales de largo plazo \citep{russell2021,sutton2018}.
+
+Los primeros trabajos se basaron en agentes heurísticos capaces de evaluar la calidad de un tablero mediante un conjunto de características geométricas. Entre ellos destaca el controlador propuesto por Dellacherie, el cual utiliza medidas como la altura de las columnas, el número de huecos y la irregularidad de la superficie para determinar la mejor acción posible \citep{dellacherie2003}.
+
+Posteriormente, diversos investigadores exploraron técnicas de optimización de políticas. Szita y Lőrincz introdujeron el Método de Entropía Cruzada para el aprendizaje automático de agentes de Tetris, demostrando que los métodos de optimización estocástica pueden superar el rendimiento de numerosos controladores heurísticos \citep{szita2006}.
+
+Con el desarrollo del Aprendizaje por Refuerzo, surgieron nuevas aproximaciones basadas en la estimación de funciones de valor. Thiery y Scherrer propusieron controladores fundamentados en la evaluación de afterstates y en la aproximación de funciones, obteniendo políticas de alto desempeño mediante representaciones compactas del tablero \citep{thiery2009}.
+
+Posteriormente, Gabillon, Ghavamzadeh y Scherrer demostraron que las técnicas de Programación Dinámica Aproximada pueden alcanzar desempeños competitivos en Tetris, evidenciando la importancia de la representación del estado y de las funciones de valor aproximadas \citep{gabillon2013}.
+
+Más recientemente, el auge del Aprendizaje Profundo ha permitido la construcción de agentes basados en Deep Reinforcement Learning, utilizando redes neuronales profundas para aproximar funciones de valor y políticas de decisión. No obstante, estos métodos suelen requerir grandes volúmenes de datos, recursos computacionales considerables y tiempos de entrenamiento significativamente mayores \citep{goodfellow2016,sutton2018}.
+
+En contraste, las aproximaciones lineales continúan siendo una alternativa atractiva debido a su bajo costo computacional, facilidad de interpretación y capacidad para proporcionar resultados competitivos en problemas de mediana complejidad \citep{gabillon2013}.
+
+Por estas razones, el presente trabajo adopta un enfoque basado en representación mediante características y aproximación lineal de funciones, incorporando tanto Aprendizaje por Diferencias Temporales como el Método de Entropía Cruzada para el aprendizaje y optimización de las políticas de juego.

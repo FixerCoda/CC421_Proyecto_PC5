@@ -1,0 +1,76 @@
+\section{Aprendizaje por Diferencias Temporales}
+\label{sec:td}
+
+El Aprendizaje por Diferencias Temporales (Temporal Difference Learning, TD Learning) constituye una familia de algoritmos de Aprendizaje por Refuerzo cuyo objetivo es estimar funciones de valor a partir de la experiencia obtenida durante la interacción con el entorno.
+
+A diferencia de los métodos Monte Carlo, los algoritmos TD actualizan las estimaciones antes de que el episodio haya finalizado, utilizando la información del siguiente estado como una aproximación del retorno futuro. Esta característica permite acelerar el proceso de aprendizaje y reducir la varianza de las actualizaciones.
+
+Sea $V(s)$ la estimación de la función de valor para el estado $s$. El error de Diferencia Temporal se define como
+
+\begin{equation}
+\delta_t
+=
+R_{t+1}
++
+\gamma V(S_{t+1})
+-
+V(S_t),
+\end{equation}
+
+donde:
+
+\begin{itemize}
+\item $R_{t+1}$ es la recompensa inmediata;
+\item $S_t$ es el estado actual;
+\item $S_{t+1}$ es el siguiente estado;
+\item $\gamma$ es el factor de descuento.
+\end{itemize}
+
+En el algoritmo TD(0), la función de valor se actualiza mediante
+
+\begin{equation}
+V(S_t)
+\leftarrow
+V(S_t)
++
+\alpha \delta_t,
+\end{equation}
+
+donde $\alpha$ representa la tasa de aprendizaje.
+
+Debido al enorme número de estados posibles en Tetris, resulta inviable almacenar explícitamente una tabla de valores. Por esta razón, se emplea una aproximación lineal de la función de valor:
+
+\begin{equation}
+V(s;w)
+=
+w^{T}\phi(s),
+\end{equation}
+
+donde:
+
+\begin{itemize}
+\item $\phi(s)$ es el vector de características;
+\item $w$ es el vector de pesos del modelo.
+\end{itemize}
+
+Sustituyendo la aproximación lineal en la ecuación de actualización, se obtiene la regla de aprendizaje utilizada por el agente:
+
+\begin{equation}
+w
+\leftarrow
+w
++
+\alpha
+\left(
+R_{t+1}
++
+\gamma V(S_{t+1})
+-
+V(S_t)
+\right)
+\phi(S_t).
+\end{equation}
+
+El agente utiliza una política $\varepsilon$-greedy para equilibrar exploración y explotación. Con probabilidad $\varepsilon$ se selecciona una acción aleatoria y con probabilidad $1-\varepsilon$ se elige la acción que maximiza la función de valor.
+
+La principal ventaja de TD(0) radica en su capacidad para aprender de manera incremental y en línea, permitiendo actualizar continuamente la función de valor conforme el agente adquiere nueva experiencia.

@@ -1,0 +1,84 @@
+\section{Metodo de Entropia Cruzada}
+\label{sec:cem}
+
+El Metodo de Entropia Cruzada (Cross-Entropy Method, CEM) es un algoritmo de optimizacion estocastica utilizado para resolver problemas de optimizacion en espacios de gran dimensionalidad.
+
+En el contexto del presente trabajo, CEM se emplea para optimizar directamente el vector de pesos de la funcion de valor aproximada.
+
+El algoritmo mantiene una distribucion de probabilidad sobre los parametros del modelo. En particular, se considera una distribucion normal multivariable:
+
+\begin{equation}
+w
+\sim
+\mathcal{N}
+(\mu,\Sigma),
+\end{equation}
+
+donde:
+
+\begin{itemize}
+\item $\mu$ es el vector de medias;
+\item $\Sigma$ es la matriz de covarianzas.
+\end{itemize}
+
+En cada iteracion se generan $N$ vectores de pesos:
+
+\begin{equation}
+w^{(1)},
+w^{(2)},
+\dots,
+w^{(N)}
+\sim
+\mathcal{N}
+(\mu,\Sigma).
+\end{equation}
+
+Cada individuo es evaluado ejecutando una partida de Tetris y calculando el retorno total:
+
+\begin{equation}
+J(w)
+=
+\sum_{t=0}^{T}
+R_t.
+\end{equation}
+
+Posteriormente se selecciona un conjunto elite formado por los individuos de mayor rendimiento:
+
+\begin{equation}
+\mathcal{E}
+=
+\left\{
+w^{(i)}
+:
+J(w^{(i)})
+\geq
+\gamma_q
+\right\},
+\end{equation}
+
+donde $\gamma_q$ representa el percentil asociado al umbral de seleccion.
+
+A partir del conjunto elite se actualizan los parametros de la distribucion:
+
+\begin{equation}
+\mu'
+=
+\frac{1}{|\mathcal{E}|}
+\sum_{w\in\mathcal{E}}
+w,
+\end{equation}
+
+\begin{equation}
+\Sigma'
+=
+\frac{1}{|\mathcal{E}|}
+\sum_{w\in\mathcal{E}}
+(w-\mu')
+(w-\mu')^{T}.
+\end{equation}
+
+El procedimiento se repite hasta alcanzar un numero determinado de generaciones o hasta que la distribucion converge.
+
+La principal ventaja de CEM es que no requiere el calculo de gradientes ni una formulacion diferenciable del problema, permitiendo optimizar directamente politicas de juego mediante una estrategia poblacional.
+
+Aunque el Método de Entropía Cruzada se desarrolla desde un punto de vista teórico y se incorpora dentro de la arquitectura general del sistema, la evaluación experimental del presente trabajo se centra en el agente basado en TD(0). La implementación completa de CEM se propone como una línea de trabajo futuro.

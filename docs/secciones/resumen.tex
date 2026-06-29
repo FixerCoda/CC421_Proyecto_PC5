@@ -1,0 +1,11 @@
+\section*{Resumen}
+
+El juego Tetris constituye un problema clásico de Inteligencia Artificial debido a la naturaleza secuencial de las decisiones, el elevado número de estados posibles y la incertidumbre introducida por la aparición aleatoria de nuevas piezas. Estas características convierten al problema en un entorno adecuado para el estudio y evaluación de técnicas de Aprendizaje por Refuerzo y métodos de optimización de políticas.
+
+El presente trabajo propone el desarrollo de un agente inteligente capaz de aprender estrategias de juego para Tetris mediante una representación basada en características geométricas del tablero y una aproximación lineal de la función de valor. El entorno se modela formalmente como un Proceso de Decisión de Markov, mientras que la calidad de cada estado se estima a partir de un conjunto de atributos que incluyen la altura agregada, el número de huecos, la rugosidad de la superficie, los pozos y las líneas eliminadas.
+
+Con el propósito de optimizar los parámetros de la función de valor se estudiaron dos enfoques complementarios. El primero emplea Aprendizaje por Diferencias Temporales TD(0), permitiendo la actualización incremental de los pesos a partir de la experiencia del agente. El segundo utiliza el Método de Entropía Cruzada, el cual optimiza directamente los parámetros de la política mediante un procedimiento de búsqueda estocástica basado en poblaciones.
+
+Para el caso del agente TD(0), se realizó un barrido exhaustivo de veintisiete configuraciones de hiperparámetros, obteniéndose una política capaz de eliminar en promedio 431.21 líneas antes de alcanzar el estado terminal. Los resultados experimentales demuestran que la combinación de modelado formal mediante MDP, representación basada en características y métodos de optimización de funciones de valor constituye una estrategia efectiva para resolver problemas de toma de decisiones secuenciales en entornos dinámicos de gran complejidad.
+
+\textbf{Palabras clave:} Aprendizaje por Refuerzo, Tetris, Proceso de Decisión de Markov, Temporal Difference Learning, Cross-Entropy Method, Aproximación de Funciones.

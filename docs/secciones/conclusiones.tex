@@ -1,0 +1,20 @@
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+El presente trabajo abordó el problema de la toma de decisiones en el juego Tetris mediante técnicas de Aprendizaje por Refuerzo y optimización estocástica. El entorno fue modelado formalmente como un Proceso de Decisión de Markov, permitiendo representar el problema dentro del marco teórico del Aprendizaje por Refuerzo.
+
+Con el fin de reducir la complejidad del espacio de estados, se empleó una representación basada en características geométricas del tablero, entre las que destacan la altura agregada, el número de huecos, la rugosidad de la superficie, los pozos y la cantidad de líneas eliminadas.
+
+La función de valor fue aproximada mediante un modelo lineal cuyos parámetros se optimizaron utilizando dos estrategias diferentes: Aprendizaje por Diferencias Temporales TD(0) y el Método de Entropía Cruzada.
+
+Los experimentos realizados mediante un barrido exhaustivo de hiperparámetros permitieron identificar una configuración de entrenamiento capaz de eliminar en promedio
+
+\begin{equation}
+\bar{L}=431.21
+\end{equation}
+
+líneas antes de alcanzar el estado terminal, evidenciando la capacidad del agente para aprender políticas de juego competitivas.
+
+Los resultados obtenidos muestran que las técnicas de aproximación lineal de funciones constituyen una alternativa efectiva para abordar problemas secuenciales de gran complejidad sin necesidad de recurrir a modelos de Aprendizaje Profundo o arquitecturas neuronales de gran escala.
+
+Finalmente, la naturaleza modular de la arquitectura desarrollada permite la incorporación de nuevos algoritmos de aprendizaje, convirtiendo al sistema propuesto en una plataforma adecuada para futuras investigaciones en Aprendizaje por Refuerzo aplicado a videojuegos y problemas de optimización secuencial.
