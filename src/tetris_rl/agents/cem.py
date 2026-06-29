@@ -75,4 +75,11 @@ def train_cem(generations: int = 20, population: int = 30, elite_frac: float = 0
         history.append({"gen": gen, "best": float(fitness.max()),
                         "mean": float(fitness.mean())})
 
+    # Gauge ‖w‖ = 1: la política es invariante a escala (selección por
+    # argmax wᵀφ), de modo que normalizar no altera el desempeño pero deja los
+    # pesos acotados, comparables e interpretables (a diferencia de TD, que
+    # diverge en magnitud).
+    norm = float(np.linalg.norm(mean))
+    if norm > 0:
+        mean = mean / norm
     return mean, history
