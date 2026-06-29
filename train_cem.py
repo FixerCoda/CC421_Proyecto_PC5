@@ -18,11 +18,13 @@ def main() -> None:
     parser.add_argument("--generations", type=int, default=20)
     parser.add_argument("--population", type=int, default=30)
     parser.add_argument("--episodes", type=int, default=5, help="partidas por candidato")
+    parser.add_argument("--max-steps", type=int, default=500, help="tope de colocaciones por partida")
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
     weights, history = train_cem(generations=args.generations, population=args.population,
-                                 episodes_per_eval=args.episodes, seed=args.seed)
+                                 episodes_per_eval=args.episodes, max_steps=args.max_steps,
+                                 seed=args.seed)
 
     models_dir = os.path.join(os.path.dirname(__file__), "models")
     os.makedirs(models_dir, exist_ok=True)
@@ -32,7 +34,7 @@ def main() -> None:
     # Fitness final de los pesos consolidados (semillas nuevas, evaluación honesta).
     env = TetrisEnv()
     final_seeds = range(1000, 1000 + 20)
-    final_fitness = evaluate(weights, env, final_seeds)
+    final_fitness = evaluate(weights, env, final_seeds, max_steps=args.max_steps)
 
     print(f"Pesos guardados en {save_path}")
     print("Pesos por feature:")

@@ -22,27 +22,36 @@ from .linear_agent import LinearAgent
 N_FEATURES = len(FEATURE_NAMES)
 
 
-def play_episode(env: TetrisEnv, agent: LinearAgent, seed: int | None = None) -> int:
-    """Juega una partida greedy y devuelve las líneas completadas."""
+def play_episode(env: TetrisEnv, agent: LinearAgent, seed: int | None = None,
+                 max_steps: int | None = None) -> int:
+    """Juega una partida greedy y devuelve las líneas completadas.
+
+    `max_steps` corta la partida tras esa cantidad de colocaciones (un agente
+    bueno juega partidas casi infinitas; el tope acota el tiempo).
+    """
     state = env.reset(seed=seed)
     done = bool(state["done"])
+    steps = 0
     while not done:
+        if max_steps is not None and steps >= max_steps:
+            break
         placements = env.legal_placements()
         if not placements:
             break
         state, _, done, _ = env.step(agent.select(placements))
+        steps += 1
     return int(state["lines_cleared"])
 
 
-def evaluate(weights, env: TetrisEnv, seeds) -> float:
+def evaluate(weights, env: TetrisEnv, seeds, max_steps: int | None = None) -> float:
     """Fitness = líneas promedio jugando con `weights` sobre las partidas `seeds`."""
     agent = LinearAgent(weights)
-    return float(np.mean([play_episode(env, agent, s) for s in seeds]))
+    return float(np.mean([play_episode(env, agent, s, max_steps) for s in seeds]))
 
 
 def train_cem(generations: int = 20, population: int = 30, elite_frac: float = 0.2,
               episodes_per_eval: int = 5, init_std: float = 1.0, extra_noise: float = 0.5,
-              seed: int = 0, rows: int = 20, cols: int = 10):
+              max_steps: int | None = 500, seed: int = 0, rows: int = 20, cols: int = 10):
     """Entrena los pesos por CEM. Devuelve (pesos_finales, history)."""
     rng = np.random.default_rng(seed)
     env = TetrisEnv(rows=rows, cols=cols)
@@ -56,7 +65,7 @@ def train_cem(generations: int = 20, population: int = 30, elite_frac: float = 0
         pop = rng.normal(mean, std, size=(population, N_FEATURES))
         # Semillas comunes para todos los candidatos de esta generación.
         ep_seeds = rng.integers(0, 2**31 - 1, size=episodes_per_eval)
-        fitness = np.array([evaluate(w, env, ep_seeds) for w in pop])
+        fitness = np.array([evaluate(w, env, ep_seeds, max_steps) for w in pop])
 
         elite = pop[np.argsort(fitness)[-n_elite:]]
         mean = elite.mean(axis=0)

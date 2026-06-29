@@ -30,6 +30,18 @@ def test_generate_is_reproducible(tmp_path):
     assert a.read_text() == b.read_text()
 
 
+def test_max_steps_caps_rows_per_episode(tmp_path):
+    path = generate(RandomAgent(seed=0), episodes=3, seed=0, out_dir=tmp_path,
+                    rows=10, cols=6, max_steps=2)
+    with path.open() as f:
+        rows = list(csv.DictReader(f))
+    # Cada episodio no debe superar max_steps colocaciones (filas).
+    per_episode = {}
+    for r in rows:
+        per_episode[r["episode"]] = per_episode.get(r["episode"], 0) + 1
+    assert max(per_episode.values()) <= 2
+
+
 def test_different_seed_changes_output(tmp_path):
     a = generate(RandomAgent(seed=1), episodes=3, seed=1, out_dir=tmp_path,
                  run_name="s1", rows=6, cols=4)
