@@ -13,3 +13,16 @@ dist/
 
 # Java (juego de referencia)
 pc_02_tetris/
+
+# Artefactos de compilación LaTeX (se versiona solo el fuente .tex/.bib)
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.bbl
+docs/*.blg
+docs/*.pdf
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+docs/secciones/*.aux
