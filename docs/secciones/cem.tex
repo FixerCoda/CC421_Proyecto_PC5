@@ -1,84 +1,68 @@
-\section{Metodo de Entropia Cruzada}
+% Sección: derivación del Cross-Entropy Method.
+\section{Optimización: Cross-Entropy Method}
 \label{sec:cem}
 
-El Metodo de Entropia Cruzada (Cross-Entropy Method, CEM) es un algoritmo de optimizacion estocastica utilizado para resolver problemas de optimizacion en espacios de gran dimensionalidad.
+Optimizamos $\max_{w} J(w)$ con una familia de muestreo Gaussiana
+$g(w; \theta) = \mathcal{N}(w; \mu, \Sigma)$, con $\theta = (\mu, \Sigma)$.
 
-En el contexto del presente trabajo, CEM se emplea para optimizar directamente el vector de pesos de la funcion de valor aproximada.
+\subsection{Densidad objetivo y proyección por entropía cruzada}
+Para un nivel de desempeño $\lambda$, la densidad ideal concentra masa en la
+región élite:
+\[
+  q_{\lambda}(w) \propto \mathbf{1}\{J(w) \ge \lambda\}\, g(w; \theta).
+\]
+Buscamos $\theta$ que minimice la divergencia de Kullback--Leibler (entropía
+cruzada) hacia $q_{\lambda}$:
+\[
+  \theta^{*}
+  = \arg\min_{\theta} D_{\mathrm{KL}}\!\big(q_{\lambda} \,\|\, g(\cdot; \theta)\big)
+  = \arg\max_{\theta} \mathbb{E}_{q_{\lambda}}\!\left[\log g(w; \theta)\right].
+\]
+Con muestras $w_{1}, \dots, w_{N} \sim g(\cdot; \theta_{t})$ y nivel adaptativo
+$\lambda_{t}$ igual al cuantil $(1-\rho)$ de $\{J(w_{i})\}$, el conjunto élite es
+$\mathcal{E}_{t} = \{w_{i} : J(w_{i}) \ge \lambda_{t}\}$, con
+$|\mathcal{E}_{t}| = \lceil \rho N \rceil$.
 
-El algoritmo mantiene una distribucion de probabilidad sobre los parametros del modelo. En particular, se considera una distribucion normal multivariable:
+\subsection{Solución en forma cerrada}
+El paso de maximización es un ajuste Gaussiano por máxima verosimilitud sobre
+los élites. Partiendo de
+$\log \mathcal{N}(w; \mu, \Sigma)
+ = -\tfrac{1}{2}\log|2\pi\Sigma| - \tfrac{1}{2}(w-\mu)^{\top}\Sigma^{-1}(w-\mu)$
+y anulando las derivadas,
+\begin{align}
+  \frac{\partial}{\partial \mu} \sum_{w \in \mathcal{E}} \log \mathcal{N}
+    &= \Sigma^{-1} \sum_{w \in \mathcal{E}} (w - \mu) = 0
+    &&\Rightarrow&
+    \mu^{*} &= \frac{1}{|\mathcal{E}|} \sum_{w \in \mathcal{E}} w, \\
+  \frac{\partial}{\partial \Sigma^{-1}} \sum_{w \in \mathcal{E}} \log \mathcal{N}
+    &= \frac{|\mathcal{E}|}{2}\Sigma
+       - \frac{1}{2}\sum_{w \in \mathcal{E}}(w-\mu^{*})(w-\mu^{*})^{\top} = 0
+    &&\Rightarrow&
+    \Sigma^{*} &= \frac{1}{|\mathcal{E}|}
+      \sum_{w \in \mathcal{E}} (w-\mu^{*})(w-\mu^{*})^{\top}.
+\end{align}
+La actualización que minimiza la entropía cruzada es, pues, la media y la
+covarianza empíricas del conjunto élite. En la práctica se usa
+$\Sigma = \mathrm{diag}(\sigma_{1}^{2}, \dots, \sigma_{d}^{2})$ por eficiencia.
 
-\begin{equation}
-w
-\sim
-\mathcal{N}
-(\mu,\Sigma),
-\end{equation}
+\subsection{Inyección de ruido y evaluación Monte Carlo}
+El CEM puro hace $\Sigma_{t} \to 0$ y colapsa a un óptimo local; para mantener
+exploración se añade ruido decreciente:
+\[
+  \Sigma_{t+1} \leftarrow \Sigma^{*} + Z_{t} I,
+  \qquad Z_{t} = \max\!\big(0,\; a - t/b\big).
+\]
+Cada $J(w_{i})$ se estima por Monte Carlo sobre $m$ episodios,
+$\hat{J}(w_{i}) = \tfrac{1}{m} \sum_{k=1}^{m} G^{(k)}(w_{i})$, con
+$\mathrm{Var}[\hat{J}] \propto 1/m$ \citep{rubinstein1999, szita2006}.
 
-donde:
-
-\begin{itemize}
-\item $\mu$ es el vector de medias;
-\item $\Sigma$ es la matriz de covarianzas.
-\end{itemize}
-
-En cada iteracion se generan $N$ vectores de pesos:
-
-\begin{equation}
-w^{(1)},
-w^{(2)},
-\dots,
-w^{(N)}
-\sim
-\mathcal{N}
-(\mu,\Sigma).
-\end{equation}
-
-Cada individuo es evaluado ejecutando una partida de Tetris y calculando el retorno total:
-
-\begin{equation}
-J(w)
-=
-\sum_{t=0}^{T}
-R_t.
-\end{equation}
-
-Posteriormente se selecciona un conjunto elite formado por los individuos de mayor rendimiento:
-
-\begin{equation}
-\mathcal{E}
-=
-\left\{
-w^{(i)}
-:
-J(w^{(i)})
-\geq
-\gamma_q
-\right\},
-\end{equation}
-
-donde $\gamma_q$ representa el percentil asociado al umbral de seleccion.
-
-A partir del conjunto elite se actualizan los parametros de la distribucion:
-
-\begin{equation}
-\mu'
-=
-\frac{1}{|\mathcal{E}|}
-\sum_{w\in\mathcal{E}}
-w,
-\end{equation}
-
-\begin{equation}
-\Sigma'
-=
-\frac{1}{|\mathcal{E}|}
-\sum_{w\in\mathcal{E}}
-(w-\mu')
-(w-\mu')^{T}.
-\end{equation}
-
-El procedimiento se repite hasta alcanzar un numero determinado de generaciones o hasta que la distribucion converge.
-
-La principal ventaja de CEM es que no requiere el calculo de gradientes ni una formulacion diferenciable del problema, permitiendo optimizar directamente politicas de juego mediante una estrategia poblacional.
-
-Aunque el Método de Entropía Cruzada se desarrolla desde un punto de vista teórico y se incorpora dentro de la arquitectura general del sistema, la evaluación experimental del presente trabajo se centra en el agente basado en TD(0). La implementación completa de CEM se propone como una línea de trabajo futuro.
+\subsection{Implementación}
+En este trabajo se emplea covarianza diagonal y el ruido decrece de forma lineal,
+$Z_{t} = c\,(1 - t/T)$, con $T$ el número de generaciones. La evaluación de cada
+candidato usa un \emph{tope de colocaciones} por partida (una buena política juega
+partidas casi ilimitadas) y \emph{números aleatorios comunes}: todos los candidatos
+de una misma generación se evalúan con las mismas semillas de partida, lo que
+reduce la varianza de la comparación. El vector final se normaliza a
+$\lVert w \rVert = 1$; al ser la política invariante a escala, esto no altera el
+desempeño pero mantiene los pesos acotados, en contraste con la divergencia de
+magnitud observada en TD (Sección~\ref{sec:td}).

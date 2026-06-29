@@ -1,67 +1,129 @@
-\section{Funcion de Valor y Politica}
+% Sección: valor de afterstate, aproximación lineal y política greedy.
+\section{Valor de afterstate, aproximación lineal y política}
 \label{sec:valor}
 
-El objetivo del agente es aprender una politica de decision que maximice el numero esperado de lineas eliminadas durante una partida de Tetris.
-
-Una politica se denota por $\pi$ y determina que accion debe ejecutar el agente en cada estado. En este trabajo, una accion corresponde a elegir una rotacion y una columna de colocacion para la pieza actual.
-
-El retorno acumulado desde un instante $t$ se define como:
-
+\subsection{Funciones de valor}
+Para una política $\pi$, la función de valor de estado es el retorno esperado
+(con el retorno $G_t$ definido en la Sección~\ref{sec:mdp}) al partir de $s$ y
+seguir $\pi$:
 \begin{equation}
-G_t =
-\sum_{k=0}^{T-t-1}
-\gamma^k R_{t+k+1},
+    V^{\pi}(s) = \mathbb{E}_{\pi}\!\big[\, G_t \,\big|\, s_t = s \,\big]
+    = \mathbb{E}_{\pi}\!\Big[\, \textstyle\sum_{k \ge 0} \gamma^{k} R_{t+k}
+        \,\Big|\, s_t = s \,\Big],
+    \label{eq:v-estado}
 \end{equation}
-
-donde $T$ es el instante en el que termina la partida, $R_{t+k+1}$ es la recompensa obtenida y $\gamma$ es el factor de descuento.
-
-La funcion de valor bajo una politica $\pi$ se define como:
-
+con $s = (b, p)$. El valor de afterstate promedia $V^{\pi}$ sobre la pieza
+siguiente, es decir, valora el tablero post-decisión $\sigma$ antes de revelar
+$p'$:
 \begin{equation}
-V^{\pi}(s) =
-E_{\pi}
-\left(
-G_t \mid S_t = s
-\right).
+    U^{\pi}(\sigma) = \mathbb{E}_{p'}\!\big[\, V^{\pi}(\sigma, p') \,\big]
+    = \sum_{p'} \mathbb{P}(p')\, V^{\pi}(\sigma, p').
+    \label{eq:u-def}
 \end{equation}
+Distinguimos el valor bajo una política dada, $U^{\pi}$, del valor óptimo
+$U^{*} = U^{\pi^{*}}$; la ecuación de optimalidad de Bellman se expresa con
+$U^{*}$.
 
-Esta funcion estima que tan conveniente es encontrarse en el estado $s$ si el agente continua actuando de acuerdo con la politica $\pi$.
-
-Debido a que Tetris posee una cantidad muy grande de estados posibles, no se utiliza una tabla de valores. En su lugar, se aproxima la funcion de valor mediante una combinacion lineal de caracteristicas:
-
+\subsection{Ecuación de optimalidad de Bellman en forma de afterstate}
+El valor óptimo de estado satisface la ecuación de optimalidad de Bellman:
 \begin{equation}
-V(s;w) =
-w^{T}\phi(s).
+    V^{*}(s) = \max_{a \in \mathcal{A}(s)}
+    \big[\, R(s,a) + \gamma\, \mathbb{E}_{s' \mid s,a}\!\left[ V^{*}(s') \right] \,\big].
+    \label{eq:bellman-estado}
 \end{equation}
-
-En esta expresion, $\phi(s)$ es el vector de caracteristicas del estado y $w$ es el vector de pesos aprendidos. Cada peso indica la importancia de una caracteristica dentro de la evaluacion del tablero.
-
-Para elegir una accion, el agente genera todas las colocaciones posibles de la pieza actual. Cada accion produce un tablero resultante o afterstate. Luego, el agente evalua cada afterstate mediante la funcion de valor y selecciona la accion con mayor valor estimado:
-
+Sustituyendo la transición factorizada (Sección~\ref{subsec:transicion}), con
+$s' = (\sigma, p')$ y $\sigma = f(s,a)$ determinista, la esperanza colapsa en el
+valor de afterstate:
 \begin{equation}
-\pi(s) =
-\arg\max_{a \in A(s)}
-V(f(s,a);w).
+    \mathbb{E}_{s' \mid s,a}\!\left[ V^{*}(s') \right]
+    = \mathbb{E}_{p'}\!\left[ V^{*}(f(s,a), p') \right]
+    = U^{*}(f(s,a)),
+    \label{eq:colapso}
 \end{equation}
-
-Aqui, $A(s)$ es el conjunto de acciones disponibles en el estado $s$, y $f(s,a)$ representa el tablero resultante despues de ejecutar la accion $a$.
-
-Por tanto, el problema de aprendizaje consiste en encontrar un vector de pesos $w$ que permita evaluar correctamente los tableros y seleccionar mejores acciones. Esto puede expresarse como:
-
+de donde
 \begin{equation}
-w^{*} =
-\arg\max_{w} J(w).
+    V^{*}(s) = \max_{a \in \mathcal{A}(s)}
+    \big[\, R(s,a) + \gamma\, U^{*}(f(s,a)) \,\big].
+    \label{eq:bellman-star}
 \end{equation}
-
-La funcion objetivo $J(w)$ representa el desempeno esperado del agente:
-
+Tomando esperanza sobre $p'$ según \eqref{eq:u-def} y sustituyendo
+\eqref{eq:bellman-star} se obtiene la ecuación en forma de afterstate:
 \begin{equation}
-J(w) =
-E
-\left(
-\sum_{t=0}^{T}
-R_t
-\right).
+    U^{*}(\sigma) = \mathbb{E}_{p'}\!\Big[\,
+        \max_{a \in \mathcal{A}(\sigma, p')}
+        \big( R(\cdot, a) + \gamma\, U^{*}(f(\cdot, a)) \big)
+        \,\Big].
+    \label{eq:bellman-afterstate}
 \end{equation}
+No es un postulado: se deriva de \eqref{eq:bellman-estado} y de la factorización
+de la transición.
 
-En el proyecto se consideran dos formas de obtener los pesos $w$. La primera es el aprendizaje por diferencias temporales TD(0), que actualiza los pesos durante la interaccion con el entorno. La segunda es el metodo de entropia cruzada, que busca directamente buenos vectores de pesos mediante una estrategia poblacional.
+\subsection{Por qué no se expande la esperanza sobre \texorpdfstring{$p'$}{p'}}
+La acción greedy óptima admite dos formas equivalentes:
+\begin{align}
+    \pi^{*}(s) & = \arg\max_{a}
+    \big[\, R(s,a) + \gamma\, \mathbb{E}_{p'}\!\left[ V^{*}(f(s,a), p') \right] \,\big],
+    \label{eq:greedy-v}         \\
+    \pi^{*}(s) & = \arg\max_{a}
+    \big[\, R(s,a) + \gamma\, U^{*}(f(s,a)) \,\big].
+    \label{eq:greedy-u}
+\end{align}
+El paso de \eqref{eq:greedy-v} a \eqref{eq:greedy-u} es \emph{exacto} (definición
+de $U^{*}$). La ventaja es doble: la esperanza sobre $p'$ depende solo del
+afterstate $\sigma$, no de la acción que se evalúe después, de modo que en
+\eqref{eq:greedy-v} se recomputaría para cada acción candidata (coste
+$\propto |\mathcal{A}(s)|\cdot 7$) mientras que en \eqref{eq:greedy-u} se contiene
+una sola vez en $U^{*}$ (coste $\propto |\mathcal{A}(s)|$); y, sobre todo, permite
+aproximar $U^{*}$ directamente sobre las características del tablero, sin necesidad
+del modelo de la pieza siguiente al decidir.
+
+\subsection{Aproximación lineal y política greedy}
+Como $U^{*}$ es desconocida, la aproximamos con una arquitectura lineal sobre el
+vector de características $\varphi(\sigma) \in \mathbb{R}^{d}$, definido en la
+Sección~\ref{sec:caracteristicas}:
+\begin{equation}
+    \hat{U}(\sigma; w) = w^{\top} \varphi(\sigma), \qquad w \in \mathbb{R}^{d}.
+    \label{eq:lineal}
+\end{equation}
+El vector de pesos $w$ es el único parámetro que se aprende; lo determina el
+Cross-Entropy Method (Sección~\ref{sec:cem}). Sustituyendo \eqref{eq:lineal} en la
+acción greedy \eqref{eq:greedy-u} (con $\gamma = 1$) se obtiene la política,
+parametrizada por $w$:
+\begin{equation}
+    \pi_{w}(s) = \arg\max_{a \in \mathcal{A}(s)}
+    \big[\, R(s,a) + w^{\top} \varphi(f(s,a)) \,\big].
+    \label{eq:politica}
+\end{equation}
+Es un look-ahead exacto de un paso: como $\mathcal{A}(s)$ es finito y $f$ es
+computable, se enumeran todos los afterstates y se evalúa $\varphi$ en cada uno.
+Si $\varphi$ incluye la componente de líneas eliminadas, $R$ queda absorbida y
+$\pi_{w}(s) = \arg\max_{a} w^{\top} \varphi(f(s,a))$. La política queda
+completamente determinada por $w$.
+
+\subsection{Objetivo de desempeño}
+Fijado $w$, queda fijada $\pi_{w}$; su calidad es el retorno esperado por
+episodio, equivalentemente el valor esperado del estado inicial:
+\begin{equation}
+    J(w) = \mathbb{E}_{\tau \sim \pi_{w}}\!\big[\, G_0 \,\big]
+    \;\overset{\gamma = 1}{=}\; \mathbb{E}_{\tau \sim \pi_{w}}\!\Big[\, \sum_{t=0}^{T} R_{t} \,\Big]
+    = \mathbb{E}_{s_0}\!\big[\, V^{\pi_{w}}(s_0) \,\big].
+    \label{eq:objetivo}
+\end{equation}
+El método de la sección siguiente maximiza $J(w)$. Tres propiedades condicionan
+esa optimización:
+\begin{enumerate}[label=(\roman*), itemsep=2pt]
+    \item \textbf{Estocástica:} la secuencia de piezas $\tau$ es aleatoria, así que
+          $\sum_t R_t$ es una variable aleatoria y $J(w)$ solo se estima por Monte
+          Carlo, promediando episodios.
+    \item \textbf{No diferenciable y constante a trozos:} $\pi_{w}$ depende de $w$
+          solo a través de $\arg\max_{a} w^{\top}\varphi$; un cambio pequeño de $w$
+          no altera el máximo, y $J$ solo salta cuando $w$ cruza una frontera donde
+          el $\arg\max$ cambia de colocación. Su gradiente es nulo casi en todas
+          partes e indefinido en los saltos.
+    \item \textbf{Invariante a escala:} $J(\alpha w) = J(w)$ para todo $\alpha > 0$,
+          pues escalar $w$ multiplica todos los puntajes $w^{\top}\varphi$ por
+          $\alpha$ sin cambiar el $\arg\max$; la política depende solo de la
+          dirección de $w$. Por ello fijamos $\lVert w \rVert_{2} = 1$.
+\end{enumerate}
+Por (i)--(ii) los métodos de gradiente son inadecuados, lo que justifica el
+optimizador sin derivadas de la Sección~\ref{sec:cem}.

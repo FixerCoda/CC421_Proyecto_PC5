@@ -19,7 +19,11 @@ finito de pasos, lo que da un retorno bien definido sin necesidad de descuento.
           determinista y una aleatoria (Sección~\ref{subsec:transicion}).
     \item \textbf{Recompensa} $R(s, a) = L(s, a)$: líneas eliminadas por la
           colocación (Sección~\ref{subsec:recompensa}).
-    \item \textbf{Descuento} $\gamma = 1$ (Sección~\ref{subsec:decisiones}).
+    \item \textbf{Descuento} $\gamma \in [0,1]$; en este trabajo $\gamma = 1$
+          (Sección~\ref{subsec:decisiones}).
+    \item \textbf{Retorno y objetivo:} el retorno es la suma descontada de
+          recompensas a partir de $t$, $G_t = \sum_{k \ge 0} \gamma^{k} R_{t+k}$, y
+          se busca maximizar el retorno esperado $\mathbb{E}[G_0]$.
 \end{itemize}
 
 \subsection{Terminología}
@@ -28,12 +32,14 @@ Un \emph{tetrominó} es una pieza de cuatro celdas; empleamos los siete estánda
 \emph{hard-drop} deja caer la pieza en línea recta hasta que apoya y la
 \emph{fija} (\emph{lock}); el \emph{soft-drop} es una caída controlada que todavía
 permite maniobrar. Al fijarse, toda fila completa se elimina (\emph{line clear})
-y las superiores descienden. El \emph{afterstate} $\sigma$ es el tablero
-resultante tras fijar y limpiar, antes de revelar la pieza siguiente
-(\emph{spawn}). La partida termina en \emph{top-out} cuando la nueva pieza no
-admite ninguna colocación. Llamamos \emph{hueco} a una celda vacía con alguna
-celda ocupada por encima, \emph{pozo} a una columna estrecha y profunda, y
-\emph{altura} de la columna $j$ a $h_j = H - \min\{\, i : b_{i,j} = 1 \,\}$.
+y las superiores descienden; eliminar cuatro filas a la vez (el máximo posible,
+solo lograble con la pieza $I$ en vertical) se denomina hacer un \emph{Tetris}.
+El \emph{afterstate} $\sigma$ es el tablero resultante tras fijar y limpiar, antes
+de revelar la pieza siguiente (\emph{spawn}). La partida termina en \emph{top-out}
+cuando la nueva pieza no admite ninguna colocación. Llamamos \emph{hueco} a una
+celda vacía con alguna celda ocupada por encima, \emph{pozo} a una columna estrecha
+y profunda, y \emph{altura} de la columna $j$ a
+$h_j = H - \min\{\, i : b_{i,j} = 1 \,\}$.
 
 \subsection{Acciones por colocación: finitud y cota}
 \label{subsec:acciones}
@@ -115,13 +121,17 @@ de modo que
 maximizar el total de líneas de la partida: es una señal acotada y directamente
 alineada con la métrica de evaluación.
 
-\paragraph{Descuento $\gamma = 1$.} Toda línea vale igual sin importar cuándo se
-elimina; un $\gamma < 1$ introduciría un sesgo temporal (preferir limpiar antes)
-ajeno al objetivo, que además penalizaría acumular para un \emph{Tetris}. Al ser
-la tarea episódica y terminar casi seguramente, la suma no descontada es finita;
-y el optimizador (CEM) maximiza $J(w) = \mathbb{E}[\sum_t R_t]$ de forma directa,
-sin \emph{bootstrapping}, por lo que $\gamma = 1$ equivale a ``sumar las líneas''.
-En evaluación se acota la longitud del episodio para mantener $J$ finito.
+\paragraph{Descuento $\gamma$.} El \emph{objetivo} del problema es maximizar el
+total de líneas de la partida, por lo que en el retorno se fija $\gamma = 1$: toda
+línea vale igual sin importar cuándo se elimina. Al ser la tarea episódica y
+terminar en un número finito de pasos, el retorno no descontado $G_t$ es una suma
+finita y está bien definida; en la práctica se acota la longitud del episodio para
+mantenerla acotada. Esto no impide que un \emph{método de entrenamiento} emplee
+internamente un descuento $\gamma < 1$ como recurso algorítmico —por ejemplo, para
+estabilizar el \emph{bootstrapping} en TD (Sección~\ref{sec:td})—; dicho descuento
+interno no modifica el objetivo de desempeño, que se reporta siempre como total de
+líneas. El método que optimiza directamente este objetivo, sin descuento ni
+gradientes, se detalla en la Sección~\ref{sec:cem}.
 
 \paragraph{Abstracción del tiempo.} El modelo prescinde de la tasa de refresco
 (\emph{frame rate}) y del tiempo real: un paso del MDP equivale a \emph{una pieza
