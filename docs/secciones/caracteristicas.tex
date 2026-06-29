@@ -1,38 +1,38 @@
-\section{Representacion mediante Caracteristicas}
+\section{Representación mediante Características}
 \label{sec:caracteristicas}
 
-El espacio de estados de Tetris es muy grande. Por ello, no resulta practico almacenar un valor independiente para cada configuracion posible del tablero. En su lugar, se utiliza una representacion compacta basada en caracteristicas numericas del tablero.
+El espacio de estados de Tetris es muy grande. Por ello, no resulta práctico almacenar un valor independiente para cada configuración posible del tablero. En su lugar, se utiliza una representación compacta basada en características numéricas del tablero, evaluadas sobre el \emph{afterstate} resultante de colocar una pieza.
 
-Sea el vector de caracteristicas:
+Sea el vector de características, con un orden fijo compartido con el vector de pesos $w$ y con la implementación:
 
 \begin{equation}
 \phi(s) =
 (f_1(s), f_2(s), f_3(s), f_4(s), f_5(s), f_6(s)).
 \end{equation}
 
-Cada componente resume una propiedad relevante del tablero despues de colocar una pieza.
+Cada componente resume una propiedad relevante del tablero después de colocar una pieza. Sea $h_j$ la altura de la columna $j$ y $W$ el número de columnas.
 
 \subsection{Altura agregada}
 
-Sea $h_j$ la altura de la columna $j$. La altura agregada se define como la suma de las alturas de todas las columnas:
+La altura agregada se define como la suma de las alturas de todas las columnas:
 
 \begin{equation}
 f_1(s) =
 \sum_{j=1}^{W} h_j.
 \end{equation}
 
-Un valor alto de esta caracteristica indica que la pila de piezas se encuentra cerca de la parte superior del tablero.
+Un valor alto de esta característica indica que la pila de piezas se encuentra cerca de la parte superior del tablero.
 
 \subsection{Huecos}
 
-Un hueco es una celda vacia que tiene al menos una celda ocupada por encima en la misma columna. La cantidad total de huecos se representa como:
+Un hueco es una celda vacía que tiene al menos una celda ocupada por encima en la misma columna. La cantidad total de huecos se representa como:
 
 \begin{equation}
 f_2(s) =
-\text{numero de huecos del tablero}.
+\text{número de huecos del tablero}.
 \end{equation}
 
-Esta caracteristica es importante porque los huecos dificultan la eliminacion de lineas y suelen empeorar la calidad del tablero.
+Esta característica es importante porque los huecos dificultan la eliminación de líneas y suelen empeorar la calidad del tablero.
 
 \subsection{Rugosidad}
 
@@ -44,44 +44,44 @@ f_3(s) =
 |h_j - h_{j+1}|.
 \end{equation}
 
-Un tablero con alta rugosidad dificulta la colocacion eficiente de nuevas piezas.
+Un tablero con alta rugosidad dificulta la colocación eficiente de nuevas piezas.
 
-\subsection{Altura maxima}
+\subsection{Líneas eliminadas}
 
-La altura maxima corresponde a la columna mas alta del tablero:
+El número de líneas eliminadas después de colocar una pieza se define como:
 
 \begin{equation}
 f_4(s) =
-\max_{1 \leq j \leq W} h_j.
-\end{equation}
-
-Esta caracteristica permite estimar que tan cerca se encuentra el agente del estado terminal.
-
-\subsection{Pozos}
-
-Un pozo es una columna o region vertical vacia rodeada por columnas de mayor altura. La cantidad de pozos se representa como:
-
-\begin{equation}
-f_5(s) =
-\text{numero de pozos del tablero}.
-\end{equation}
-
-Los pozos pueden ser utiles si permiten colocar una pieza larga, pero en general aumentan el riesgo si no son controlados adecuadamente.
-
-\subsection{Lineas eliminadas}
-
-El numero de lineas eliminadas despues de colocar una pieza se define como:
-
-\begin{equation}
-f_6(s) =
 L(s,a).
 \end{equation}
 
-Esta caracteristica se relaciona directamente con el objetivo principal del juego.
+Esta característica se relaciona directamente con el objetivo principal del juego.
 
-\subsection{Vector final de caracteristicas}
+\subsection{Altura máxima}
 
-En conjunto, la representacion utilizada por el agente es:
+La altura máxima corresponde a la columna más alta del tablero:
+
+\begin{equation}
+f_5(s) =
+\max_{1 \leq j \leq W} h_j.
+\end{equation}
+
+Esta característica permite estimar qué tan cerca se encuentra el agente del estado terminal.
+
+\subsection{Pozos}
+
+Un pozo es una columna o región vertical vacía rodeada por columnas de mayor altura. Su contribución es la suma de las profundidades de los pozos respecto a sus columnas vecinas, tratando las paredes laterales como vecinos de altura infinita:
+
+\begin{equation}
+f_6(s) =
+\text{suma de las profundidades de los pozos del tablero}.
+\end{equation}
+
+Los pozos pueden ser útiles si permiten colocar una pieza larga, pero en general aumentan el riesgo si no son controlados adecuadamente.
+
+\subsection{Vector final de características}
+
+En conjunto, la representación utilizada por el agente es:
 
 \begin{equation}
 \phi(s) =
@@ -89,10 +89,10 @@ En conjunto, la representacion utilizada por el agente es:
 \text{altura agregada},
 \text{huecos},
 \text{rugosidad},
-\text{altura maxima},
-\text{pozos},
-\text{lineas eliminadas}
-).
+\text{líneas eliminadas},
+\text{altura máxima},
+\text{pozos}
+),
 \end{equation}
 
-Esta representacion permite reducir la complejidad del problema y facilita el uso de una funcion de valor lineal.
+en el mismo orden que el vector de pesos $w$ y que la implementación (\texttt{features.py}). Esta representación permite reducir la complejidad del problema y facilita el uso de una función de valor lineal.

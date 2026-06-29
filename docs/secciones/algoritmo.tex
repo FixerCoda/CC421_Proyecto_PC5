@@ -9,7 +9,7 @@ El procedimiento general de entrenamiento del agente se resume en el Algoritmo~\
 \begin{algorithmic}[1]
 
 \State Inicializar el entorno Tetris
-\State Inicializar los parametros del modelo
+\State Inicializar los parámetros del modelo
 
 \For{cada episodio de entrenamiento}
 
@@ -20,12 +20,12 @@ El procedimiento general de entrenamiento del agente se resume en el Algoritmo~\
 
         \State Generar las acciones factibles
         \State Evaluar los afterstates
-        \State Seleccionar una accion
-        \State Ejecutar la accion
+        \State Seleccionar una acción
+        \State Ejecutar la acción
         \State Obtener recompensa y siguiente estado
 
         \If{se utiliza TD(0)}
-            \State Actualizar los pesos mediante la ecuacion de Diferencia Temporal
+            \State Actualizar los pesos mediante la ecuación de Diferencia Temporal
         \EndIf
 
     \EndWhile
@@ -33,10 +33,10 @@ El procedimiento general de entrenamiento del agente se resume en el Algoritmo~\
 \EndFor
 
 \If{se utiliza CEM}
-    \State Generar poblacion de candidatos
+    \State Generar población de candidatos
     \State Evaluar cada individuo
-    \State Seleccionar conjunto elite
-    \State Actualizar la distribucion de parametros
+    \State Seleccionar conjunto élite
+    \State Actualizar la distribución de parámetros
 \EndIf
 
 \State Devolver el mejor vector de pesos encontrado.
