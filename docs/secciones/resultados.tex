@@ -145,7 +145,32 @@ La Figura~\ref{fig:evolucion_pesos} presenta la evolución temporal de los pesos
 \label{fig:evolucion_pesos}
 \end{figure}
 
-La estabilización progresiva de los pesos constituye un indicio de que el proceso de aprendizaje converge hacia una valoración más consistente de los estados del tablero. En particular, la evolución de estos parámetros permite interpretar cómo el agente ajusta la importancia relativa de las características usadas para seleccionar acciones.
+A diferencia de lo que cabría esperar de una convergencia clásica, las magnitudes de los pesos \textbf{no se estabilizan}: crecen de forma sostenida durante todo el entrenamiento (por ejemplo, el peso de la altura agregada alcanza valores del orden de $-1.5\times10^{5}$). Este comportamiento es coherente con la inestabilidad conocida del aprendizaje TD semi-gradiente combinado con aproximación de funciones, y se ve acentuado por la agregación asíncrona de las actualizaciones entre procesos. La política, no obstante, sigue siendo competente porque depende únicamente de la \emph{dirección} del vector de pesos y no de su magnitud: la selección por $\arg\max_{a} w^{\top}\phi$ es invariante a escala, de modo que lo que se estabiliza son las \emph{proporciones y los signos relativos} de los pesos, no sus valores absolutos. Esta divergencia de magnitudes motiva el uso de un método invariante a escala como el de entropía cruzada (Sección~\ref{sec:cem}).
+
+\subsection{Comparación de agentes: TD frente a CEM}
+
+Para comparar de forma justa los dos métodos de entrenamiento se evaluaron ambos agentes —junto con los baselines aleatorio y heurístico— bajo un protocolo idéntico: $20$ partidas con las mismas semillas, política \emph{greedy} y un tope de $1000$ colocaciones por partida. Por usar un tope común, las cifras absolutas difieren del barrido sin tope de las secciones anteriores, pero permiten una comparación controlada. La Tabla~\ref{tab:comparacion} resume los resultados.
+
+\begin{table}
+\centering
+\small
+\caption{Comparación de agentes bajo un protocolo idéntico (20 partidas, tope de 1000 colocaciones, política greedy).}
+\label{tab:comparacion}
+\begin{tabular}{lccc}
+\hline
+Agente & Líneas (media) & Desv. estándar & Máximo \\
+\hline
+Aleatorio  & 0.0            & 0.0           & 0   \\
+Heurístico & 184.0          & 113.3         & 386 \\
+TD(0)      & 338.6          & 88.9          & 399 \\
+CEM        & \textbf{371.4} & \textbf{50.6} & 399 \\
+\hline
+\end{tabular}
+\end{table}
+
+Bajo el mismo tope, CEM obtiene la mayor media de líneas ($371.4$ frente a $338.6$ de TD) y, sobre todo, la menor desviación estándar ($50.6$ frente a $88.9$), es decir, un desempeño más consistente. Ambos métodos aprenden políticas competentes y superan ampliamente al heurístico.
+
+La diferencia más relevante está en la estabilidad de los pesos. Mientras que el vector de pesos de TD diverge en magnitud ($\lVert w \rVert \approx 1.3\times10^{5}$), el de CEM permanece acotado y normalizado ($\lVert w \rVert = 1$). Los pesos de CEM son además directamente interpretables: penalizan la altura agregada, los huecos, la rugosidad y los pozos, y premian las líneas eliminadas, en concordancia con la intuición del juego. Este resultado confirma que un método de optimización directa e invariante a escala como CEM no solo evita la inestabilidad numérica del TD semi-gradiente, sino que produce una política igual o más efectiva.
 
 \subsection{Síntesis de resultados}
 
