@@ -42,3 +42,10 @@ def test_evaluate_returns_float():
     fit = evaluate(np.zeros(len(FEATURE_NAMES)), env, seeds=[0, 1])
     assert isinstance(fit, float)
     assert fit >= 0
+
+
+def test_max_steps_zero_clears_nothing():
+    # Con tope 0 no se coloca ninguna pieza -> 0 líneas (verifica que el tope corta).
+    env = TetrisEnv(rows=6, cols=4)
+    lines = play_episode(env, LinearAgent(np.zeros(len(FEATURE_NAMES))), seed=0, max_steps=0)
+    assert lines == 0

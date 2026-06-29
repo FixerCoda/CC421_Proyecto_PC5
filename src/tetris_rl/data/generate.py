@@ -16,8 +16,13 @@ from .logger import TransitionLogger
 
 
 def generate(agent, episodes: int, seed: int = 0, out_dir: str | Path = "data/raw",
-             run_name: str | None = None, rows: int = 20, cols: int = 10) -> Path:
-    """Juega `episodes` partidas con `agent`, registra cada transición y devuelve la ruta del CSV."""
+             run_name: str | None = None, rows: int = 20, cols: int = 10,
+             max_steps: int | None = None) -> Path:
+    """Juega `episodes` partidas con `agent`, registra cada transición y devuelve la ruta del CSV.
+
+    `max_steps` corta cada partida tras esa cantidad de colocaciones; útil para
+    agentes fuertes (TD/CEM), que de otro modo jugarían partidas casi infinitas.
+    """
     env = TetrisEnv(rows=rows, cols=cols)
     if run_name is None:
         run_name = f"{type(agent).__name__}_seed{seed}_ep{episodes}"
@@ -29,6 +34,8 @@ def generate(agent, episodes: int, seed: int = 0, out_dir: str | Path = "data/ra
             done = bool(state["done"])
             step = 0
             while not done:
+                if max_steps is not None and step >= max_steps:
+                    break
                 placements = env.legal_placements()
                 if not placements:
                     break
