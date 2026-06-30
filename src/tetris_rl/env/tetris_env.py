@@ -108,15 +108,8 @@ class TetrisEnv:
         self.piece = self._spawn_piece()
         if self.piece is None or not self.legal_placements():
             self.done = True
-        
-        # --- Cimiento 1: Función de Recompensa R(s, a, s') ---
-        # Recompensa por limpiar líneas (la convertimos a float para el descenso de gradiente)
-        reward = float(placement.lines**2)
-        
-        # Penalización crítica: si la acción lo lleva a un estado terminal (game over)
-        if self.done:
-            reward -= 100.0
-            
+        # Recompensa = líneas eliminadas por la colocación: R(s, a) = L(s, a).
+        reward = float(placement.lines)
         return self._state(), reward, self.done, {"lines": placement.lines}
 
     # Mecánica interna
