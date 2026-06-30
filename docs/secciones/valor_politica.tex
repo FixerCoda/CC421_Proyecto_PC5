@@ -80,13 +80,14 @@ del modelo de la pieza siguiente al decidir.
 \subsection{Aproximación lineal y política greedy}
 Como $U^{*}$ es desconocida, la aproximamos con una arquitectura lineal sobre el
 vector de características $\varphi(\sigma) \in \mathbb{R}^{d}$, definido en la
-Sección~\ref{sec:caracteristicas}:
+Sección~\ref{sec:caracteristicas} \citep{bertsekas1996}:
 \begin{equation}
     \hat{U}(\sigma; w) = w^{\top} \varphi(\sigma), \qquad w \in \mathbb{R}^{d}.
     \label{eq:lineal}
 \end{equation}
-El vector de pesos $w$ es el único parámetro que se aprende; lo determina el
-Cross-Entropy Method (Sección~\ref{sec:cem}). Sustituyendo \eqref{eq:lineal} en la
+El vector de pesos $w$ es el único parámetro que se aprende; lo determina un
+método de entrenamiento, ya sea TD(0) (Sección~\ref{sec:td}) o el Cross-Entropy
+Method (Sección~\ref{sec:cem}). Sustituyendo \eqref{eq:lineal} en la
 acción greedy \eqref{eq:greedy-u} (con $\gamma = 1$) se obtiene la política,
 parametrizada por $w$:
 \begin{equation}

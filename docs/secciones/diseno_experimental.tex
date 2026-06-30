@@ -37,11 +37,11 @@ Cada configuración fue entrenada de manera independiente y posteriormente evalu
 La métrica de evaluación utilizada fue
 
 \begin{equation}
-J = \frac{1}{N}
+\overline{L} = \frac{1}{N}
 \sum_{i=1}^{N}
 L_i,
 \end{equation}
 
 donde $L_i$ representa el número de líneas eliminadas en el episodio $i$ y $N$ corresponde al número total de episodios de evaluación.
 
-La elección de esta métrica obedece a que el objetivo principal del agente consiste en maximizar la supervivencia y el número de líneas eliminadas durante una partida de Tetris.
+La elección de esta métrica obedece a que el objetivo principal del agente consiste en maximizar el número de líneas eliminadas durante una partida de Tetris, lo que indirectamente prolonga la supervivencia.

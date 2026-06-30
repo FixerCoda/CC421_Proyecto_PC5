@@ -4,36 +4,37 @@
 
 El primer método de entrenamiento aprende la función de valor por
 \emph{bootstrapping}, sin esperar al final del episodio, sobre la misma
-arquitectura lineal $\hat{V}(\sigma; w) = w^{\top}\varphi(\sigma)$ de la
+arquitectura lineal $\hat{U}(\sigma; w) = w^{\top}\varphi(\sigma)$ de la
 Sección~\ref{sec:valor}. Es el baseline funcional del proyecto.
 
 \subsection{Error TD y actualización semi-gradiente}
 Para una transición entre afterstates $\sigma_t \to \sigma_{t+1}$ con recompensa
 $R_{t+1}$, el objetivo TD(0) y el error TD son
 \begin{align}
-  y_t &= R_{t+1} + \gamma\, \hat{V}(\sigma_{t+1}; w), \label{eq:td-target}\\
-  \delta_t &= y_t - \hat{V}(\sigma_t; w)
+  y_t &= R_{t+1} + \gamma\, \hat{U}(\sigma_{t+1}; w), \label{eq:td-target}\\
+  \delta_t &= y_t - \hat{U}(\sigma_t; w)
            = R_{t+1} + \gamma\, w^{\top}\varphi(\sigma_{t+1})
              - w^{\top}\varphi(\sigma_t). \label{eq:td-error}
 \end{align}
 La actualización \emph{semi-gradiente} desciende sobre $\tfrac{1}{2}\delta_t^{2}$
 tratando el objetivo $y_t$ como constante (no se deriva respecto a $w$):
 \begin{equation}
-  w \leftarrow w + \alpha\, \delta_t\, \nabla_w \hat{V}(\sigma_t; w)
+  w \leftarrow w + \alpha\, \delta_t\, \nabla_w \hat{U}(\sigma_t; w)
             = w + \alpha\, \delta_t\, \varphi(\sigma_t),
   \label{eq:td-update}
 \end{equation}
 con tasa de aprendizaje $\alpha$. En el estado terminal (top-out) se toma
-$\hat{V} = 0$, de modo que $\delta_T = R_T - w^{\top}\varphi(\sigma_T)$.
+$\hat{U} = 0$, de modo que $\delta_T = R_T - w^{\top}\varphi(\sigma_T)$.
 
 \subsection{Política de comportamiento}
 Durante el entrenamiento se sigue una política $\varepsilon$-greedy sobre la
 acción greedy de \eqref{eq:politica}: con probabilidad $1-\varepsilon$ se elige
 $\arg\max_a w^{\top}\varphi(f(s,a))$ y con probabilidad $\varepsilon$ una
 colocación al azar (exploración). Las tasas $\alpha$ y $\varepsilon$ decaen con
-los episodios. El descuento $\gamma < 1$ (en la práctica $\gamma = 0.99$) actúa
-como recurso algorítmico que estabiliza el \emph{bootstrapping}; el desempeño que
-se reporta sigue siendo el total de líneas por partida.
+los episodios. El descuento $\gamma < 1$ (en la práctica $\gamma \in \{0.99, 0.999\}$,
+siendo $0.999$ el de la mejor configuración) actúa como recurso algorítmico que
+estabiliza el \emph{bootstrapping}; el desempeño que se reporta sigue siendo el
+total de líneas por partida.
 
 \subsection{Algoritmo}
 \begin{verbatim}
@@ -45,7 +46,7 @@ para cada episodio:
         (s', R, fin) = step(a)
         a' = epsilon_greedy(legal_placements(s'))      # None si no hay jugada
         sigma' = afterstate(s', a')                    # terminal si a' = None
-        delta = R + gamma * V(sigma') - V(sigma)       # V(terminal) = 0
+        delta = R + gamma * U(sigma') - U(sigma)       # U(terminal) = 0
         w = w + alpha * delta * phi(sigma)
         s, a = s', a'
 \end{verbatim}

@@ -3,7 +3,7 @@
 
 El presente trabajo abordó el problema de la toma de decisiones en el juego Tetris mediante técnicas de Aprendizaje por Refuerzo y optimización estocástica. El entorno fue modelado formalmente como un Proceso de Decisión de Markov, permitiendo representar el problema dentro del marco teórico del Aprendizaje por Refuerzo.
 
-Con el fin de reducir la complejidad del espacio de estados, se empleó una representación basada en características geométricas del tablero, entre las que destacan la altura agregada, el número de huecos, la rugosidad de la superficie, los pozos y la cantidad de líneas eliminadas.
+Con el fin de reducir la complejidad del espacio de estados, se empleó una representación basada en características geométricas del tablero, entre las que destacan la altura agregada, el número de huecos, la rugosidad de la superficie, las líneas eliminadas, la altura máxima y los pozos.
 
 La función de valor fue aproximada mediante un modelo lineal cuyos parámetros se optimizaron utilizando dos estrategias diferentes: Aprendizaje por Diferencias Temporales TD(0) y el Método de Entropía Cruzada.
 
@@ -14,6 +14,8 @@ Los experimentos realizados mediante un barrido exhaustivo de hiperparámetros p
 \end{equation}
 
 líneas antes de alcanzar el estado terminal, evidenciando la capacidad del agente para aprender políticas de juego competitivas.
+
+Más allá del barrido, la comparación controlada entre ambos métodos de entrenamiento mostró que el Método de Entropía Cruzada iguala o supera a TD(0) en desempeño ($371.4$ frente a $338.6$ líneas promedio, con menor variabilidad) y, además, mantiene el vector de pesos acotado e interpretable ($\lVert w \rVert = 1$). En contraste, los pesos de TD(0) divergen en magnitud, una manifestación de la inestabilidad del aprendizaje semi-gradiente con aproximación de funciones, aunque su política sigue siendo efectiva por la invarianza de escala. Esto posiciona al Método de Entropía Cruzada como la alternativa más robusta para el problema considerado.
 
 Los resultados obtenidos muestran que las técnicas de aproximación lineal de funciones constituyen una alternativa efectiva para abordar problemas secuenciales de gran complejidad sin necesidad de recurrir a modelos de Aprendizaje Profundo o arquitecturas neuronales de gran escala.
 
