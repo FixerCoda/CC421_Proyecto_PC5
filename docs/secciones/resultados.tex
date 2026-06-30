@@ -1,7 +1,7 @@
 \section{Resultados Experimentales}
 \label{sec:resultados}
 
-Esta sección presenta los resultados obtenidos durante el barrido exhaustivo de hiperparámetros aplicado al agente de Aprendizaje por Refuerzo. El objetivo del experimento fue identificar la configuración que maximiza el número promedio de líneas eliminadas antes de alcanzar el estado terminal del juego.
+Esta sección presenta los resultados obtenidos durante el barrido exhaustivo de hiperparámetros aplicado al agente de Aprendizaje por Refuerzo. El objetivo del experimento fue identificar la configuración que maximiza el número promedio de líneas eliminadas antes de alcanzar el estado terminal del juego. Todos los entrenamientos emplean la recompensa $R = L$ (líneas eliminadas, Sección~\ref{sec:mdp}).
 
 En total se evaluaron veintisiete configuraciones independientes, obtenidas a partir de la combinación de tres valores para el factor de descuento $\gamma$, tres valores para la tasa de aprendizaje inicial $\alpha$ y tres valores para el número de episodios de decaimiento de la exploración $N_{\varepsilon}$.
 
@@ -18,7 +18,7 @@ donde $L_i$ representa el número de líneas eliminadas en la partida $i$ y $N$ 
 
 \subsection{Mejores configuraciones del barrido}
 
-La Tabla~\ref{tab:sweep_top10} muestra las diez configuraciones con mejor desempeño. Se observa que el mejor modelo corresponde a la configuración $\gamma=0.999$, $\alpha=0.001$ y $N_{\varepsilon}=1000$, la cual alcanzó un promedio de $431.21$ líneas eliminadas antes del estado terminal.
+La Tabla~\ref{tab:sweep_top10} muestra las diez configuraciones con mejor desempeño. Se observa que el mejor modelo corresponde a la configuración $\gamma=0.999$, $\alpha=0.0005$ y $N_{\varepsilon}=1500$, la cual alcanzó un promedio de $409.13$ líneas eliminadas antes del estado terminal.
 
 \begin{table}
 \centering
@@ -29,16 +29,16 @@ La Tabla~\ref{tab:sweep_top10} muestra las diez configuraciones con mejor desemp
 \hline
 Ranking & $\gamma$ & $\alpha$ & $N_{\varepsilon}$ & Líneas promedio \\
 \hline
-1  & 0.999 & 0.0010 & 1000 & 431.21 \\
-2  & 0.900 & 0.0001 & 1800 & 408.12 \\
-3  & 0.990 & 0.0010 & 1000 & 399.07 \\
-4  & 0.999 & 0.0005 & 1000 & 386.24 \\
-5  & 0.990 & 0.0005 & 1800 & 352.79 \\
-6  & 0.999 & 0.0010 & 1500 & 352.52 \\
-7  & 0.990 & 0.0005 & 1000 & 351.37 \\
-8  & 0.999 & 0.0001 & 1000 & 351.23 \\
-9  & 0.990 & 0.0005 & 1500 & 349.42 \\
-10 & 0.990 & 0.0001 & 1500 & 343.24 \\
+1  & 0.999 & 0.0005 & 1500 & 409.13 \\
+2  & 0.999 & 0.0005 & 1800 & 398.40 \\
+3  & 0.999 & 0.0001 & 1000 & 396.35 \\
+4  & 0.999 & 0.0001 & 1800 & 393.04 \\
+5  & 0.990 & 0.0010 & 1800 & 390.46 \\
+6  & 0.990 & 0.0001 & 1000 & 388.61 \\
+7  & 0.990 & 0.0005 & 1500 & 378.38 \\
+8  & 0.990 & 0.0005 & 1800 & 376.88 \\
+9  & 0.990 & 0.0001 & 1800 & 374.55 \\
+10 & 0.999 & 0.0001 & 1500 & 367.33 \\
 \hline
 \end{tabular}
 \end{table}
@@ -48,11 +48,11 @@ El mejor resultado cuantitativo del barrido fue:
 \begin{equation}
 \gamma=0.999,
 \qquad
-\alpha=0.001,
+\alpha=0.0005,
 \qquad
-N_{\varepsilon}=1000,
+N_{\varepsilon}=1500,
 \qquad
-\overline{L}=431.21.
+\overline{L}=409.13.
 \end{equation}
 
 Este resultado constituye la mejor política encontrada durante la experimentación y evidencia que el agente es capaz de aprender una estrategia de juego considerablemente superior a configuraciones menos favorables.
@@ -70,18 +70,18 @@ La Tabla~\ref{tab:sweep_gamma} resume el desempeño agregado según el valor del
 \hline
 $\gamma$ & Promedio & Desviación estándar & Mínimo & Máximo \\
 \hline
-0.900 & 52.65  & 133.50 & 0.00   & 408.12 \\
-0.990 & 340.64 & 31.30  & 284.08 & 399.07 \\
-0.999 & 343.96 & 43.32  & 294.22 & 431.21 \\
+0.900 & 10.71  & 23.69  & 0.00 & 73.04  \\
+0.990 & 250.71 & 188.43 & 0.00 & 390.46 \\
+0.999 & 335.97 & 127.94 & 0.00 & 409.13 \\
 \hline
 \end{tabular}
 \end{table}
 
-A partir de la Tabla~\ref{tab:sweep_gamma}, se observa que $\gamma=0.999$ obtiene el mayor valor máximo y el mejor resultado global. Asimismo, $\gamma=0.990$ presenta un promedio competitivo y una menor dispersión, lo que sugiere un comportamiento más estable entre distintas tasas de aprendizaje y calendarios de exploración.
+A partir de la Tabla~\ref{tab:sweep_gamma}, se observa que $\gamma=0.999$ obtiene el mayor promedio, el mayor valor máximo y la menor dispersión, por lo que es el más robusto. En contraste, $\gamma=0.900$ prácticamente no aprende (promedio de $10.71$ líneas): un horizonte demasiado corto impide valorar la supervivencia a largo plazo, esencial en Tetris.
 
 \subsection{Resumen por tasa de aprendizaje}
 
-La Tabla~\ref{tab:sweep_alpha} presenta el desempeño agrupado por tasa de aprendizaje inicial. Aunque el mejor modelo utiliza $\alpha=0.001$, los promedios agregados muestran que el rendimiento depende de la interacción entre $\alpha$, $\gamma$ y el decaimiento de exploración, no solamente de un hiperparámetro aislado.
+La Tabla~\ref{tab:sweep_alpha} presenta el desempeño agrupado por tasa de aprendizaje inicial. Los promedios agregados muestran que el rendimiento depende de la interacción entre $\alpha$, $\gamma$ y el decaimiento de exploración, no solamente de un hiperparámetro aislado.
 
 \begin{table}
 \centering
@@ -92,18 +92,18 @@ La Tabla~\ref{tab:sweep_alpha} presenta el desempeño agrupado por tasa de apren
 \hline
 $\alpha$ & Promedio & Desviación estándar & Mínimo & Máximo \\
 \hline
-0.0001 & 268.29 & 148.57 & 0.00 & 408.12 \\
-0.0005 & 231.09 & 168.98 & 4.94 & 386.24 \\
-0.0010 & 237.88 & 179.16 & 0.00 & 431.21 \\
+0.0001 & 221.44 & 194.24 & 0.00 & 396.35 \\
+0.0005 & 252.95 & 188.38 & 0.00 & 409.13 \\
+0.0010 & 123.01 & 181.32 & 0.00 & 390.46 \\
 \hline
 \end{tabular}
 \end{table}
 
-La configuración ganadora combina una tasa de aprendizaje relativamente mayor con un factor de descuento muy cercano a uno. Esto indica que el agente logró actualizar la función de valor con suficiente velocidad sin perder la capacidad de planificar a largo plazo.
+La tasa $\alpha=0.0005$ obtiene el mejor promedio agregado ($252.95$) y el mejor resultado global, mientras que $\alpha=0.001$ resulta la menos estable (promedio de $123.01$). Esto sugiere que, con la recompensa $R=L$, una tasa de aprendizaje demasiado alta dificulta la convergencia de los pesos, y que un valor intermedio ofrece el mejor equilibrio entre velocidad y estabilidad.
 
 \subsection{Resumen por decaimiento de exploración}
 
-La Tabla~\ref{tab:sweep_epsilon_decay} muestra el desempeño agrupado por el número de episodios usados para reducir progresivamente la exploración. El mejor resultado se obtuvo con $N_{\varepsilon}=1000$, aunque el promedio agregado más alto corresponde a $N_{\varepsilon}=1800$. Esta diferencia indica que un decaimiento más prolongado puede mejorar la robustez general, pero la mejor configuración puntual se obtiene con una transición más rápida hacia la explotación.
+La Tabla~\ref{tab:sweep_epsilon_decay} muestra el desempeño agrupado por el número de episodios usados para reducir progresivamente la exploración. El mejor resultado puntual se obtuvo con $N_{\varepsilon}=1500$, mientras que el promedio agregado más alto corresponde a $N_{\varepsilon}=1800$. Esta diferencia indica que un decaimiento más prolongado mejora la robustez general (mayor mínimo y mayor promedio), pero la mejor configuración puntual se logra con un decaimiento intermedio.
 
 \begin{table}
 \centering
@@ -114,9 +114,9 @@ La Tabla~\ref{tab:sweep_epsilon_decay} muestra el desempeño agrupado por el nú
 \hline
 $N_{\varepsilon}$ & Promedio & Desviación estándar & Mínimo & Máximo \\
 \hline
-1000 & 251.68 & 189.56 & 0.00  & 431.21 \\
-1500 & 229.06 & 162.94 & 6.03  & 352.52 \\
-1800 & 256.51 & 143.67 & 11.21 & 408.12 \\
+1000 & 204.20 & 194.41 & 0.00 & 396.35 \\
+1500 & 129.01 & 192.27 & 0.00 & 409.13 \\
+1800 & 264.19 & 177.04 & 8.11 & 398.40 \\
 \hline
 \end{tabular}
 \end{table}
@@ -128,7 +128,7 @@ La Figura~\ref{fig:curva_aprendizaje} muestra la evolución del desempeño del m
 \begin{figure}
 \centering
 \resizebox{0.85\textwidth}{!}{\includegraphics{figuras/curva_aprendizaje.png}}
-\caption{Curva de aprendizaje obtenida para la mejor configuración del barrido: $\gamma=0.999$, $\alpha=0.001$ y $N_{\varepsilon}=1000$.}
+\caption{Curva de aprendizaje obtenida para la mejor configuración del barrido: $\gamma=0.999$, $\alpha=0.0005$ y $N_{\varepsilon}=1500$.}
 \label{fig:curva_aprendizaje}
 \end{figure}
 
@@ -145,7 +145,7 @@ La Figura~\ref{fig:evolucion_pesos} presenta la evolución temporal de los pesos
 \label{fig:evolucion_pesos}
 \end{figure}
 
-A diferencia de lo que cabría esperar de una convergencia clásica, las magnitudes de los pesos \textbf{no se estabilizan}: crecen de forma sostenida durante todo el entrenamiento (por ejemplo, el peso de la altura agregada alcanza valores del orden de $-1.5\times10^{5}$). Este comportamiento es coherente con la inestabilidad conocida del aprendizaje TD semi-gradiente combinado con aproximación de funciones, y se ve acentuado por la agregación asíncrona de las actualizaciones entre procesos. La política, no obstante, sigue siendo competente porque depende únicamente de la \emph{dirección} del vector de pesos y no de su magnitud: la selección por $\arg\max_{a} w^{\top}\varphi$ es invariante a escala, de modo que lo que se estabiliza son las \emph{proporciones y los signos relativos} de los pesos, no sus valores absolutos. Esta divergencia de magnitudes motiva el uso de un método invariante a escala como el de entropía cruzada (Sección~\ref{sec:cem}).
+A diferencia de lo que cabría esperar de una convergencia clásica, las magnitudes de los pesos \textbf{no se estabilizan}: crecen de forma sostenida durante todo el entrenamiento (por ejemplo, el peso de la altura agregada alcanza valores del orden de $-10^{5}$). Este comportamiento es coherente con la inestabilidad conocida del aprendizaje TD semi-gradiente combinado con aproximación de funciones, y se ve acentuado por la agregación asíncrona de las actualizaciones entre procesos. La política, no obstante, sigue siendo competente porque depende únicamente de la \emph{dirección} del vector de pesos y no de su magnitud: la selección por $\arg\max_{a} w^{\top}\varphi$ es invariante a escala, de modo que lo que se estabiliza son las \emph{proporciones y los signos relativos} de los pesos, no sus valores absolutos. Esta divergencia de magnitudes motiva el uso de un método invariante a escala como el de entropía cruzada (Sección~\ref{sec:cem}).
 
 \subsection{Comparación de agentes: TD frente a CEM}
 
@@ -170,8 +170,8 @@ CEM        & \textbf{371.4} & \textbf{50.6} & 399 \\
 
 Bajo el mismo tope, CEM obtiene la mayor media de líneas ($371.4$ frente a $338.6$ de TD) y, sobre todo, la menor desviación estándar ($50.6$ frente a $88.9$), es decir, un desempeño más consistente. Ambos métodos aprenden políticas competentes y superan ampliamente al heurístico.
 
-La diferencia más relevante está en la estabilidad de los pesos. Mientras que el vector de pesos de TD diverge en magnitud ($\lVert w \rVert \approx 1.3\times10^{5}$), el de CEM permanece acotado y normalizado ($\lVert w \rVert = 1$). Los pesos de CEM son además directamente interpretables: penalizan la altura agregada, los huecos, la rugosidad y los pozos, y premian las líneas eliminadas, en concordancia con la intuición del juego. Este resultado confirma que un método de optimización directa e invariante a escala como CEM no solo evita la inestabilidad numérica del TD semi-gradiente, sino que produce una política igual o más efectiva.
+La diferencia más relevante está en la estabilidad de los pesos. Mientras que el vector de pesos de TD diverge en magnitud ($\lVert w \rVert \approx 10^{5}$), el de CEM permanece acotado y normalizado ($\lVert w \rVert = 1$). Los pesos de CEM son además directamente interpretables: penalizan la altura agregada, los huecos, la rugosidad y los pozos, y premian las líneas eliminadas, en concordancia con la intuición del juego. Este resultado confirma que un método de optimización directa e invariante a escala como CEM no solo evita la inestabilidad numérica del TD semi-gradiente, sino que produce una política igual o más efectiva.
 
 \subsection{Síntesis de resultados}
 
-El barrido experimental permitió identificar una configuración capaz de eliminar en promedio $431.21$ líneas por partida antes de alcanzar el estado terminal. Este resultado confirma que la combinación de Aprendizaje por Refuerzo, aproximación lineal de funciones, representación mediante características y ajuste exhaustivo de hiperparámetros permite construir un agente competitivo para el entorno de Tetris considerado en este proyecto.
+El barrido experimental permitió identificar una configuración capaz de eliminar en promedio $409.13$ líneas por partida antes de alcanzar el estado terminal. Este resultado confirma que la combinación de Aprendizaje por Refuerzo, aproximación lineal de funciones, representación mediante características y ajuste exhaustivo de hiperparámetros permite construir un agente competitivo para el entorno de Tetris considerado en este proyecto.
