@@ -1,23 +1,23 @@
 \section{Representación mediante Características}
 \label{sec:caracteristicas}
 
-El espacio de estados de Tetris es muy grande. Por ello, no resulta práctico almacenar un valor independiente para cada configuración posible del tablero. En su lugar, se utiliza una representación compacta basada en características numéricas del tablero, evaluadas sobre el \emph{afterstate} resultante de colocar una pieza.
+El espacio de estados de Tetris es muy grande. Por ello, no resulta práctico almacenar un valor independiente para cada configuración posible del tablero. En su lugar, se utiliza una representación compacta basada en características numéricas del tablero, evaluadas sobre el \emph{afterstate} $\sigma = f(s,a)$ resultante de colocar una pieza (Sección~\ref{sec:mdp}).
 
 Sea el vector de características, con un orden fijo compartido con el vector de pesos $w$ y con la implementación:
 
 \begin{equation}
-\phi(s) =
-(f_1(s), f_2(s), f_3(s), f_4(s), f_5(s), f_6(s)).
+\varphi(\sigma) =
+(f_1(\sigma), f_2(\sigma), f_3(\sigma), f_4(\sigma), f_5(\sigma), f_6(\sigma)).
 \end{equation}
 
-Cada componente resume una propiedad relevante del tablero después de colocar una pieza. Sea $h_j$ la altura de la columna $j$ y $W$ el número de columnas.
+Cada componente resume una propiedad relevante del afterstate. Sea $h_j$ la altura de la columna $j$ y $W$ el número de columnas.
 
 \subsection{Altura agregada}
 
 La altura agregada se define como la suma de las alturas de todas las columnas:
 
 \begin{equation}
-f_1(s) =
+f_1(\sigma) =
 \sum_{j=1}^{W} h_j.
 \end{equation}
 
@@ -28,7 +28,7 @@ Un valor alto de esta característica indica que la pila de piezas se encuentra 
 Un hueco es una celda vacía que tiene al menos una celda ocupada por encima en la misma columna. La cantidad total de huecos se representa como:
 
 \begin{equation}
-f_2(s) =
+f_2(\sigma) =
 \text{número de huecos del tablero}.
 \end{equation}
 
@@ -39,7 +39,7 @@ Esta característica es importante porque los huecos dificultan la eliminación 
 La rugosidad mide la irregularidad de la superficie del tablero. Se calcula como la suma de las diferencias absolutas entre alturas de columnas consecutivas:
 
 \begin{equation}
-f_3(s) =
+f_3(\sigma) =
 \sum_{j=1}^{W-1}
 |h_j - h_{j+1}|.
 \end{equation}
@@ -48,10 +48,10 @@ Un tablero con alta rugosidad dificulta la colocación eficiente de nuevas pieza
 
 \subsection{Líneas eliminadas}
 
-El número de líneas eliminadas después de colocar una pieza se define como:
+El número de líneas eliminadas por la colocación que produce el afterstate $\sigma$, es decir, $L(s,a)$ según la Sección~\ref{sec:mdp}:
 
 \begin{equation}
-f_4(s) =
+f_4(\sigma) =
 L(s,a).
 \end{equation}
 
@@ -62,7 +62,7 @@ Esta característica se relaciona directamente con el objetivo principal del jue
 La altura máxima corresponde a la columna más alta del tablero:
 
 \begin{equation}
-f_5(s) =
+f_5(\sigma) =
 \max_{1 \leq j \leq W} h_j.
 \end{equation}
 
@@ -73,7 +73,7 @@ Esta característica permite estimar qué tan cerca se encuentra el agente del e
 Un pozo es una columna o región vertical vacía rodeada por columnas de mayor altura. Su contribución es la suma de las profundidades de los pozos respecto a sus columnas vecinas, tratando las paredes laterales como vecinos de altura infinita:
 
 \begin{equation}
-f_6(s) =
+f_6(\sigma) =
 \text{suma de las profundidades de los pozos del tablero}.
 \end{equation}
 
@@ -84,7 +84,7 @@ Los pozos pueden ser útiles si permiten colocar una pieza larga, pero en genera
 En conjunto, la representación utilizada por el agente es:
 
 \begin{equation}
-\phi(s) =
+\varphi(\sigma) =
 (
 \text{altura agregada},
 \text{huecos},

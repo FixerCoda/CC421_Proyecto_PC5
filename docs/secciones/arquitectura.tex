@@ -21,16 +21,16 @@ La arquitectura del sistema se organiza en módulos independientes que separan e
 ]
 
 \node[block] (env) at (0,0) {Entorno Tetris};
-\node[block] (actions) at (0,-1.4) {Generacion de acciones factibles};
-\node[block] (after) at (0,-2.8) {Generacion de afterstates};
-\node[block] (features) at (0,-4.2) {Extraccion de caracteristicas};
-\node[block] (value) at (0,-5.6) {Funcion de valor lineal\\$V(s;w)=w^{T}\phi(s)$};
+\node[block] (actions) at (0,-1.4) {Generación de acciones factibles};
+\node[block] (after) at (0,-2.8) {Generación de afterstates};
+\node[block] (features) at (0,-4.2) {Extracción de características};
+\node[block] (value) at (0,-5.6) {Función de valor lineal\\$V(\sigma;w)=w^{\top}\varphi(\sigma)$};
 
 \node[block] (td) at (-3.3,-7.3) {Aprendizaje TD(0)};
-\node[block] (cem) at (3.3,-7.3) {Optimizacion CEM};
+\node[block] (cem) at (3.3,-7.3) {Optimización CEM};
 
-\node[block] (policy) at (0,-9.0) {Seleccion de accion};
-\node[block] (update) at (0,-10.4) {Actualizacion del entorno};
+\node[block] (policy) at (0,-9.0) {Selección de acción};
+\node[block] (update) at (0,-10.4) {Actualización del entorno};
 
 \draw[arrow] (env) -- (actions);
 \draw[arrow] (actions) -- (after);
