@@ -4,11 +4,16 @@ Ejecutar:
 $ python play_model.py
 """
 
+import os
+import sys
 import time
+
 import numpy as np
 
-from src.tetris_rl.env.tetris_env import TetrisEnv
-from src.tetris_rl.agents.td_agent import TDAgent
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+
+from tetris_rl.env.tetris_env import TetrisEnv
+from tetris_rl.agents.td_agent import TDAgent
 
 def evaluate_model(weights_path: str = "models/td_weights.npy", delay: float = 0.05):
     print(f"Cargando pesos desde: {weights_path}...")
