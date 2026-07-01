@@ -127,8 +127,8 @@ línea vale igual sin importar cuándo se elimina. Al ser la tarea episódica y
 terminar en un número finito de pasos, el retorno no descontado $G_t$ es una suma
 finita y está bien definida; en la práctica se acota la longitud del episodio para
 mantenerla acotada. Esto no impide que un \emph{método de entrenamiento} emplee
-internamente un descuento $\gamma < 1$ como recurso algorítmico —por ejemplo, para
-estabilizar el \emph{bootstrapping} en TD (Sección~\ref{sec:td})—; dicho descuento
+internamente un descuento $\gamma < 1$ como recurso algorítmico (por ejemplo, para
+estabilizar el \emph{bootstrapping} en TD, Sección~\ref{sec:td}); dicho descuento
 interno no modifica el objetivo de desempeño, que se reporta siempre como total de
 líneas. El método que optimiza directamente este objetivo, sin descuento ni
 gradientes, se detalla en la Sección~\ref{sec:cem}.
