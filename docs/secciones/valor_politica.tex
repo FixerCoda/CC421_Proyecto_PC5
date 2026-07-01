@@ -25,7 +25,8 @@ $U^{*} = U^{\pi^{*}}$; la ecuación de optimalidad de Bellman se expresa con
 $U^{*}$.
 
 \subsection{Ecuación de optimalidad de Bellman en forma de afterstate}
-El valor óptimo de estado satisface la ecuación de optimalidad de Bellman:
+El valor óptimo de estado satisface la ecuación de optimalidad de Bellman
+\citep{bellman1957, sutton2018}:
 \begin{equation}
     V^{*}(s) = \max_{a \in \mathcal{A}(s)}
     \big[\, R(s,a) + \gamma\, \mathbb{E}_{s' \mid s,a}\!\left[ V^{*}(s') \right] \,\big].
@@ -46,19 +47,34 @@ de donde
     \big[\, R(s,a) + \gamma\, U^{*}(f(s,a)) \,\big].
     \label{eq:bellman-star}
 \end{equation}
-Tomando esperanza sobre $p'$ según \eqref{eq:u-def} y sustituyendo
-\eqref{eq:bellman-star} se obtiene la ecuación en forma de afterstate:
+La ecuación~\eqref{eq:bellman-star} vale para \emph{cualquier} estado. En
+particular, al evaluarla en el estado $s = (\sigma, p')$, cuyo tablero es el
+afterstate $\sigma$ y cuya pieza actual es $p'$, se obtiene su valor óptimo:
+\begin{equation}
+    V^{*}(\sigma, p') = \max_{a \in \mathcal{A}(\sigma, p')}
+    \big[\, R((\sigma, p'), a) + \gamma\, U^{*}(f((\sigma, p'), a)) \,\big].
+    \label{eq:v-opt-sp}
+\end{equation}
+Tomando la esperanza sobre la pieza siguiente $p'$ en ambos lados de
+\eqref{eq:v-opt-sp} y usando la definición del valor de afterstate,
+$U^{*}(\sigma) = \mathbb{E}_{p'}\!\left[ V^{*}(\sigma, p') \right]$
+(ecuación~\eqref{eq:u-def} para la política óptima), el miembro izquierdo se
+convierte en $U^{*}(\sigma)$ y resulta la ecuación de optimalidad en forma de
+afterstate:
 \begin{equation}
     U^{*}(\sigma) = \mathbb{E}_{p'}\!\Big[\,
         \max_{a \in \mathcal{A}(\sigma, p')}
-        \big( R(\cdot, a) + \gamma\, U^{*}(f(\cdot, a)) \big)
+        \big( R((\sigma, p'), a) + \gamma\, U^{*}(f((\sigma, p'), a)) \big)
         \,\Big].
     \label{eq:bellman-afterstate}
 \end{equation}
-No es un postulado: se deriva de \eqref{eq:bellman-estado} y de la factorización
-de la transición.
+Esta ecuación caracteriza el valor óptimo de afterstate $U^{*}$, cuyo cálculo
+exacto es intratable por el enorme número de estados. Por ello, en lo que sigue se
+lo aproxima con una función lineal de las características (ecuación~\eqref{eq:lineal}),
+cuyos pesos se aprenden por TD(0) o por el Método de Entropía Cruzada, y de la que
+se deriva la política greedy~\eqref{eq:politica}.
 
-\subsection{Por qué no se expande la esperanza sobre \texorpdfstring{$p'$}{p'}}
+\subsection{Por qué se usa \texorpdfstring{$U^{*}$}{U*} en lugar de expandir la esperanza sobre \texorpdfstring{$p'$}{p'}}
 La acción greedy óptima admite dos formas equivalentes:
 \begin{align}
     \pi^{*}(s) & = \arg\max_{a}
@@ -68,14 +84,41 @@ La acción greedy óptima admite dos formas equivalentes:
     \big[\, R(s,a) + \gamma\, U^{*}(f(s,a)) \,\big].
     \label{eq:greedy-u}
 \end{align}
-El paso de \eqref{eq:greedy-v} a \eqref{eq:greedy-u} es \emph{exacto} (definición
-de $U^{*}$). La ventaja es doble: la esperanza sobre $p'$ depende solo del
-afterstate $\sigma$, no de la acción que se evalúe después, de modo que en
-\eqref{eq:greedy-v} se recomputaría para cada acción candidata (coste
-$\propto |\mathcal{A}(s)|\cdot 7$) mientras que en \eqref{eq:greedy-u} se contiene
-una sola vez en $U^{*}$ (coste $\propto |\mathcal{A}(s)|$); y, sobre todo, permite
-aproximar $U^{*}$ directamente sobre las características del tablero, sin necesidad
-del modelo de la pieza siguiente al decidir.
+El paso de \eqref{eq:greedy-v} a \eqref{eq:greedy-u} es \emph{exacto}: basta
+aplicar la definición del valor de afterstate,
+$U^{*}(\sigma) = \mathbb{E}_{p'}\!\left[ V^{*}(\sigma, p') \right]$, con
+$\sigma = f(s,a)$.
+
+\paragraph{Razón conceptual.} La esperanza sobre $p'$ describe lo que ocurre
+\emph{después} de colocar la pieza actual y depende únicamente del tablero
+resultante $\sigma$, no de la acción $a$ que se esté comparando (más allá de que
+$a$ produce $\sigma$). Es, por tanto, una propiedad del afterstate y no de la
+decisión actual, por lo que puede extraerse del $\arg\max$ y quedar contenida una
+sola vez en $U^{*}(\sigma)$.
+
+\paragraph{Sin modelo de la pieza siguiente al decidir.} Al ser $U^{*}(\sigma)$
+una función solo del tablero-afterstate, se la aproxima directamente con las
+características, $U^{*}(\sigma) \approx w^{\top}\varphi(\sigma)$. En tiempo de
+decisión, el agente únicamente enumera los afterstates $f(s,a)$, evalúa
+$w^{\top}\varphi$ sobre cada uno y elige el máximo; \emph{nunca} necesita la
+distribución de $p'$, pues ese promedio quedó absorbido en $U^{*}$ (en los pesos
+$w$) durante el aprendizaje. La forma \eqref{eq:greedy-v}, en cambio, exigiría al
+decidir conocer dicha distribución y evaluar $V^{*}$ para las siete piezas de cada
+acción.
+
+\paragraph{Eficiencia.} Expandir la esperanza obligaría a promediar $V^{*}$ sobre
+las siete piezas para cada una de las $|\mathcal{A}(s)|$ acciones candidatas, del
+orden de $|\mathcal{A}(s)| \cdot 7$ evaluaciones por decisión. Con
+\eqref{eq:greedy-u}, cada afterstate se puntúa con una sola evaluación
+$w^{\top}\varphi(\sigma)$, del orden de $|\mathcal{A}(s)|$; el factor siete se
+ahorra precisamente porque la aproximación de $U^{*}$ evita recomputar el promedio
+en cada decisión.
+
+Esta es la ventaja clásica de los estados post-decisión o \emph{afterstates}
+\citep{sutton2018, bertsekas1996}: al valorar el estado posterior a la jugada pero
+anterior al evento aleatorio, se separa la parte determinista (la elección del
+agente) de la estocástica (la pieza siguiente), y basta aprender el valor del
+resultado determinista.
 
 \subsection{Aproximación lineal y política greedy}
 Como $U^{*}$ es desconocida, la aproximamos con una arquitectura lineal sobre el
@@ -97,7 +140,7 @@ parametrizada por $w$:
 \end{equation}
 Es un look-ahead exacto de un paso: como $\mathcal{A}(s)$ es finito y $f$ es
 computable, se enumeran todos los afterstates y se evalúa $\varphi$ en cada uno.
-Si $\varphi$ incluye la componente de líneas eliminadas, $R$ queda absorbida y
+Dado que $\varphi$ incluye la componente de líneas eliminadas, $R$ queda absorbida y
 $\pi_{w}(s) = \arg\max_{a} w^{\top} \varphi(f(s,a))$. La política queda
 completamente determinada por $w$.
 
@@ -110,12 +153,19 @@ episodio, equivalentemente el valor esperado del estado inicial:
     = \mathbb{E}_{s_0}\!\big[\, V^{\pi_{w}}(s_0) \,\big].
     \label{eq:objetivo}
 \end{equation}
+Aquí $\tau = (s_0, a_0, R_1, s_1, a_1, \dots, s_T)$ es una \emph{trayectoria}
+completa (una partida desde el inicio hasta el top-out), y la notación
+$\tau \sim \pi_{w}$ indica que esa trayectoria se \emph{genera siguiendo} la
+política $\pi_{w}$: en cada paso la acción es $a_t = \pi_{w}(s_t)$ y la pieza
+siguiente se sortea $p' \sim \mathrm{Unif}\{1, \dots, 7\}$. Como $\pi_{w}$ es
+determinista, la única fuente de aleatoriedad de $\tau$ es la secuencia de piezas;
+por eso $J(w)$ promedia el total de líneas sobre todas las secuencias posibles.
 El método de la sección siguiente maximiza $J(w)$. Tres propiedades condicionan
 esa optimización:
 \begin{enumerate}[label=(\roman*), itemsep=2pt]
-    \item \textbf{Estocástica:} la secuencia de piezas $\tau$ es aleatoria, así que
-          $\sum_t R_t$ es una variable aleatoria y $J(w)$ solo se estima por Monte
-          Carlo, promediando episodios.
+    \item \textbf{Estocástica:} la trayectoria $\tau$ es aleatoria (por la
+          secuencia de piezas), así que $\sum_t R_t$ es una variable aleatoria y
+          $J(w)$ solo se estima por Monte Carlo, promediando episodios.
     \item \textbf{No diferenciable y constante a trozos:} $\pi_{w}$ depende de $w$
           solo a través de $\arg\max_{a} w^{\top}\varphi$; un cambio pequeño de $w$
           no altera el máximo, y $J$ solo salta cuando $w$ cruza una frontera donde
