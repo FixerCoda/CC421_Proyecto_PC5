@@ -27,3 +27,7 @@ docs/*.fls
 docs/*.fdb_latexmk
 docs/*.synctex.gz
 docs/secciones/*.aux
+
+# Presentaciones
+pitch_presentacion.md
+prompt_presentacion.md
