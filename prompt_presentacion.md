@@ -56,7 +56,7 @@ Genera el contenido siguiendo exactamente esta estructura. Para cada diapositiva
 *   **Detalle Visual Exigido:** Una distribución normal $\mathcal{N}(\mu, \Sigma)$ con el percentil superior (la élite $\mathcal{E}$) sombreado. Una flecha indicando el desplazamiento de $\mu$ hacia dicha élite. Incluir la restricción de calibración final del modelo: normalización estricta $\lVert w \rVert = 1$.
 
 ### Diapositiva 6: La Ilusión del Corto Plazo (Evaluación a 1000 pasos)
-*   **El concepto:** Bajo un horizonte artificial estricto (1000 colocaciones), el rendimiento de ambos agentes entrenados parece similar.
+*   **El concepto:** Bajo un horizonte a corto plazo (1000 colocaciones), el rendimiento de ambos agentes entrenados parece similar.
 *   **Los datos a mostrar:** Aleatorio: 0 | Heurístico: 184 | TD(0): 338 | CEM: 371.
 *   **Conclusión Parcial:** Ocurre un "efecto techo". Ambos agentes logran sobrevivir el límite de los 1000 pasos; la métrica aquí solo está capturando ligeras variaciones en la eficiencia de empaquetado, no la capacidad real de supervivencia.
 *   **Detalle Visual Exigido:** Un gráfico de barras minimalista. La parte superior del gráfico debe estar visualmente seccionada o truncada por una línea punteada que diga "Límite artificial: 1000 pasos", mostrando cómo las barras de TD(0) y CEM "chocan" contra este techo.

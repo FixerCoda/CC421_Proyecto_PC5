@@ -20,7 +20,7 @@ Ante este desafío, la tendencia actual en la industria es lanzar fuerza bruta: 
 ---
 
 ## Diapositiva 2: Formulación MDP y Abstracción Temporal
-**Orador:** Pedro  
+**Orador:** Diego  
 **Duración aproximada:** 1.5 minutos
 
 "Para resolver el problema computacional, el primer paso fue modelar el entorno formalmente como un Proceso de Decisión de Markov (MDP). Sin embargo, tomamos una decisión de diseño crítica: la abstracción temporal.
@@ -32,7 +32,7 @@ Esto reduce drásticamente el factor de ramificación: pasamos de infinitas tray
 ---
 
 ## Diapositiva 3: Extracción de Características y Aceleración JIT
-**Orador:** Pedro  
+**Orador:** Diego  
 **Duración aproximada:** 2 minutos
 
 "Como el espacio de *afterstates* sigue siendo gigante, no podemos usar una tabla para almacenar el valor de cada tablero. Por ello, mapeamos cada *afterstate* a un vector compacto de 6 características geométricas clave: 
@@ -63,7 +63,7 @@ Sin embargo, observamos un problema teórico clásico en la práctica: la inesta
 ---
 
 ## Diapositiva 5: Optimización mediante CEM
-**Orador:** Diego  
+**Orador:** Pedro  
 **Duración aproximada:** 2 minutos
 
 "Para resolver la inestabilidad del TD, cambiamos de paradigma. En lugar de usar *bootstrapping* y gradientes, implementamos el Método de Entropía Cruzada (o CEM). CEM es un método de optimización directa de la política basado en poblaciones.
@@ -75,7 +75,7 @@ Para garantizar robustez y comparaciones justas, usamos *Common Random Numbers*,
 ---
 
 ## Diapositiva 6: La Ilusión del Corto Plazo (Evaluación a 1000 pasos)
-**Orador:** Diego  
+**Orador:** Pedro  
 **Duración aproximada:** 2 minutos
 
 "Llegado el momento de comparar ambos algoritmos frente a baselines, diseñamos un protocolo estricto: 20 partidas con las mismas semillas aleatorias. 
