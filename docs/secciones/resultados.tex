@@ -150,13 +150,13 @@ A diferencia de lo que cabría esperar de una convergencia clásica, las magnitu
 
 \subsection{Comparación de agentes: TD frente a CEM}
 
-Para comparar de forma justa los dos métodos de entrenamiento se evaluaron ambos agentes (junto con los baselines aleatorio y heurístico) bajo un protocolo idéntico: $20$ partidas con las mismas semillas, política \emph{greedy} y un tope de $1000$ colocaciones por partida. Por usar un tope común, las cifras absolutas difieren del barrido sin tope de las secciones anteriores, pero permiten una comparación controlada. La Tabla~\ref{tab:comparacion} resume los resultados.
+Para comparar de forma justa los dos métodos de entrenamiento se evaluaron ambos agentes (junto con los baselines aleatorio y heurístico) bajo un protocolo idéntico: $20$ partidas con las mismas semillas y política \emph{greedy}. Inicialmente, se estableció un horizonte artificial de $1000$ colocaciones por partida. Por usar un tope común, las cifras absolutas difieren del barrido sin tope de las secciones anteriores, pero permiten una comparación controlada. La Tabla~\ref{tab:comparacion_1000} resume los resultados bajo este límite.
 
-\begin{table}
+\begin{table}[h]
 \centering
 \small
 \caption{Comparación de agentes bajo un protocolo idéntico (20 partidas, tope de 1000 colocaciones, política greedy).}
-\label{tab:comparacion}
+\label{tab:comparacion_1000}
 \begin{tabular}{lccc}
 \hline
 Agente & Líneas (media) & Desv. estándar & Máximo \\
@@ -169,9 +169,30 @@ CEM        & \textbf{371.4} & \textbf{50.6} & 399 \\
 \end{tabular}
 \end{table}
 
-Bajo el mismo tope, CEM obtiene la mayor media de líneas ($371.4$ frente a $338.6$ de TD) y, sobre todo, la menor desviación estándar ($50.6$ frente a $88.9$), es decir, un desempeño más consistente. Ambos métodos aprenden políticas competentes y superan ampliamente al heurístico.
+Bajo este tope, CEM obtiene una mayor media de líneas ($371.4$ frente a $338.6$ de TD) y una menor desviación estándar ($50.6$ frente a $88.9$), evidenciando un desempeño más consistente. Sin embargo, ambos agentes logran sobrevivir el límite de los $1000$ pasos; la métrica captura principalmente la eficiencia de limpieza en el corto plazo, generando un efecto techo que oculta diferencias fundamentales en la estabilidad a largo plazo.
 
-La diferencia más relevante está en la estabilidad de los pesos. Mientras que el vector de pesos de TD diverge en magnitud ($\lVert w \rVert \approx 10^{5}$), el de CEM permanece acotado y normalizado ($\lVert w \rVert = 1$). Los pesos de CEM son además directamente interpretables: penalizan la altura agregada, los huecos, la rugosidad y los pozos, y premian las líneas eliminadas, en concordancia con la intuición del juego. Este resultado confirma que un método de optimización directa e invariante a escala como CEM no solo evita la inestabilidad numérica del TD semi-gradiente, sino que produce una política igual o más efectiva.
+Para observar la verdadera capacidad de supervivencia de los agentes, se extendió el horizonte artificial a $5000$ colocaciones. La Tabla~\ref{tab:comparacion_5000} presenta los resultados en este escenario ampliado.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Comparación de agentes extendida a 5000 colocaciones.}
+\label{tab:comparacion_5000}
+\begin{tabular}{lccc}
+\hline
+Agente & Líneas (media) & Desv. estándar & Máximo \\
+\hline
+Aleatorio  & 0.0            & 0.0           & 0   \\
+Heurístico & 184.0          & 113.3         & 386 \\
+TD(0)      & 563.2          & 341.1         & 1441 \\
+CEM        & \textbf{1048.2}& \textbf{679.5}& 1999 \\
+\hline
+\end{tabular}
+\end{table}
+
+Al extender la evaluación, se revela la verdadera fragilidad del agente entrenado con TD(0). Bajo estrés prolongado, la inestabilidad de los pesos divergentes de TD ($\lVert w \rVert \approx 1.5 \times 10^{5}$) provoca acumulación de errores y un estado terminal prematuro. En contraste, el agente CEM, gracias a la estabilidad garantizada por sus pesos acotados y normalizados ($\lVert w \rVert = 1.0$), es capaz de mantener el control de la partida y casi duplicar el rendimiento promedio del agente TD(0) ($1048.2$ frente a $563.2$ líneas).
+
+Los pesos de CEM son además directamente interpretables: penalizan la altura agregada, los huecos, la rugosidad y los pozos, y premian las líneas eliminadas, en concordancia con la intuición del juego. Estos resultados confirman que un método de optimización directa e invariante a escala como CEM no solo evita la inestabilidad numérica del TD semi-gradiente, sino que produce una política sustancialmente más robusta y efectiva a largo plazo.
 
 \subsection{Síntesis de resultados}
 
