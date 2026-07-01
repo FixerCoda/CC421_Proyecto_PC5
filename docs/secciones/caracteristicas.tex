@@ -3,14 +3,19 @@
 
 El espacio de estados de Tetris es muy grande. Por ello, no resulta práctico almacenar un valor independiente para cada configuración posible del tablero. En su lugar, se utiliza una representación compacta basada en características numéricas del tablero, evaluadas sobre el \emph{afterstate} $\sigma = f(s,a)$ resultante de colocar una pieza (Sección~\ref{sec:mdp}).
 
-Sea el vector de características, con un orden fijo compartido con el vector de pesos $w$ y con la implementación:
+Sea el vector de características, con un orden fijo compartido con el vector de pesos $w$ y con la implementación (\texttt{features.py}):
 
 \begin{equation}
     \varphi(\sigma) =
     (f_1(\sigma), f_2(\sigma), f_3(\sigma), f_4(\sigma), f_5(\sigma), f_6(\sigma)).
 \end{equation}
 
-Cada componente resume una propiedad relevante del afterstate. Sea $h_j$ la altura de la columna $j$ y $W$ el número de columnas.
+Cada componente resume una propiedad relevante del afterstate. Sea $b_{i,j}\in\{0,1\}$ la ocupación de la celda en la fila $i$ (numeradas desde arriba) y la columna $j$, con $H$ filas y $W$ columnas. La altura $h_j$ de la columna $j$ es la \emph{posición de la celda ocupada más alta}:
+
+\begin{equation}
+    h_j = H - \min\{\, i : b_{i,j} = 1 \,\}
+    \qquad (h_j = 0 \text{ si la columna está vacía}).
+\end{equation}
 
 \subsection{Altura agregada}
 
@@ -29,7 +34,8 @@ Un hueco es una celda vacía que tiene al menos una celda ocupada por encima en 
 
 \begin{equation}
     f_2(\sigma) =
-    \text{número de huecos del tablero}.
+    \sum_{j=1}^{W}
+    \bigl|\{\, i : b_{i,j}=0 \;\wedge\; \exists\, i'<i,\; b_{i',j}=1 \,\}\bigr|.
 \end{equation}
 
 Esta característica es importante porque los huecos dificultan la eliminación de líneas y suelen empeorar la calidad del tablero.
@@ -74,25 +80,13 @@ Un pozo es una columna o región vertical vacía rodeada por columnas de mayor a
 
 \begin{equation}
     f_6(\sigma) =
-    \text{suma de las profundidades de los pozos del tablero}.
+    \sum_{j=1}^{W}
+    \max\!\bigl(0,\; \min(h_{j-1}, h_{j+1}) - h_j \bigr),
+    \qquad h_0 = h_{W+1} = +\infty.
 \end{equation}
 
 Los pozos pueden ser útiles si permiten colocar una pieza larga, pero en general aumentan el riesgo si no son controlados adecuadamente.
 
-\subsection{Vector final de características}
+\medskip
 
-En conjunto, la representación utilizada por el agente es:
-
-\begin{equation}
-    \varphi(\sigma) =
-    (
-    \text{altura agregada},
-    \text{huecos},
-    \text{rugosidad},
-    \text{líneas eliminadas},
-    \text{altura máxima},
-    \text{pozos}
-    ),
-\end{equation}
-
-en el mismo orden que el vector de pesos $w$ y que la implementación (\texttt{features.py}). Esta representación permite reducir la complejidad del problema y facilita el uso de una función de valor lineal.
+En conjunto, las seis características ofrecen una representación compacta, en el orden fijo ya indicado (compartido con el vector de pesos $w$ y con \texttt{features.py}), que reduce la complejidad del problema y habilita el uso de una función de valor lineal.
