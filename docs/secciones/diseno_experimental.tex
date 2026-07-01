@@ -32,6 +32,8 @@ N_{\varepsilon}
 \end{equation}
 \end{itemize}
 
+Conviene precisar el rol del factor de descuento en el barrido. El $\gamma$ que se varía es el descuento \emph{interno} del método TD(0) (Sección~\ref{sec:td}), empleado como recurso algorítmico para estabilizar el \emph{bootstrapping}, y no el descuento del objetivo de desempeño, que se mantiene sin descontar ($\gamma = 1$, toda línea vale igual sin importar cuándo se elimina; Sección~\ref{subsec:decisiones}). Incluir $\gamma$ en la malla no contradice esa elección: su propósito es \emph{corroborar empíricamente}, en lugar de asumir, que un descuento interno cercano a $1$ (el más fiel al objetivo) es también el que produce mejor desempeño. La hipótesis, por tanto, es que las configuraciones con $\gamma \to 1$ deberían dominar el barrido; esta comprobación se presenta en la Sección~\ref{subsec:res-gamma}.
+
 Cada configuración fue entrenada de manera independiente y posteriormente evaluada mediante el número promedio de líneas eliminadas antes de alcanzar el estado terminal del juego.
 
 La métrica de evaluación utilizada fue

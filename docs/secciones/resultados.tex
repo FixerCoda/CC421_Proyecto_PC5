@@ -58,8 +58,9 @@ N_{\varepsilon}=1500,
 Este resultado constituye la mejor política encontrada durante la experimentación y evidencia que el agente es capaz de aprender una estrategia de juego considerablemente superior a configuraciones menos favorables.
 
 \subsection{Resumen por factor de descuento}
+\label{subsec:res-gamma}
 
-La Tabla~\ref{tab:sweep_gamma} resume el desempeño agregado según el valor del factor de descuento. Los resultados muestran que los valores cercanos a la unidad producen mejores resultados promedio, lo cual es coherente con la naturaleza secuencial de Tetris: una colocación aparentemente conveniente en el corto plazo puede perjudicar la supervivencia futura del agente.
+Esta subsección contrasta la hipótesis planteada en el diseño experimental (Sección~\ref{sec:experimentos}): que un descuento interno cercano a $1$, el más fiel al objetivo no descontado del problema, es también el que mejor desempeño produce. La Tabla~\ref{tab:sweep_gamma} resume el desempeño agregado según el valor del factor de descuento.
 
 \begin{table}
 \centering
@@ -77,7 +78,7 @@ $\gamma$ & Promedio & Desviación estándar & Mínimo & Máximo \\
 \end{tabular}
 \end{table}
 
-A partir de la Tabla~\ref{tab:sweep_gamma}, se observa que $\gamma=0.999$ obtiene el mayor promedio, el mayor valor máximo y la menor dispersión, por lo que es el más robusto. En contraste, $\gamma=0.900$ prácticamente no aprende (promedio de $10.71$ líneas): un horizonte demasiado corto impide valorar la supervivencia a largo plazo, esencial en Tetris.
+Los resultados confirman la hipótesis. El desempeño promedio crece de forma monótona con $\gamma$ ($10.71 \to 250.71 \to 335.97$): $\gamma=0.999$ obtiene el mayor promedio, el mayor valor máximo ($409.13$) y una dispersión menor que la de $\gamma=0.990$, por lo que es también el más robusto entre las configuraciones que aprenden. En contraste, $\gamma=0.900$ prácticamente no aprende (promedio de $10.71$ líneas): un horizonte demasiado corto impide valorar la supervivencia a largo plazo, esencial en Tetris, donde una colocación aparentemente conveniente en el corto plazo puede comprometer la partida. Se verifica así, empíricamente, que fijar el descuento interno de TD en un valor cercano a $1$ es la mejor opción, en concordancia con el objetivo no descontado ($\gamma=1$) definido en la Sección~\ref{subsec:decisiones}.
 
 \subsection{Resumen por tasa de aprendizaje}
 
@@ -149,7 +150,7 @@ A diferencia de lo que cabría esperar de una convergencia clásica, las magnitu
 
 \subsection{Comparación de agentes: TD frente a CEM}
 
-Para comparar de forma justa los dos métodos de entrenamiento se evaluaron ambos agentes —junto con los baselines aleatorio y heurístico— bajo un protocolo idéntico: $20$ partidas con las mismas semillas, política \emph{greedy} y un tope de $1000$ colocaciones por partida. Por usar un tope común, las cifras absolutas difieren del barrido sin tope de las secciones anteriores, pero permiten una comparación controlada. La Tabla~\ref{tab:comparacion} resume los resultados.
+Para comparar de forma justa los dos métodos de entrenamiento se evaluaron ambos agentes (junto con los baselines aleatorio y heurístico) bajo un protocolo idéntico: $20$ partidas con las mismas semillas, política \emph{greedy} y un tope de $1000$ colocaciones por partida. Por usar un tope común, las cifras absolutas difieren del barrido sin tope de las secciones anteriores, pero permiten una comparación controlada. La Tabla~\ref{tab:comparacion} resume los resultados.
 
 \begin{table}
 \centering
