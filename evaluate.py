@@ -28,7 +28,7 @@ def evaluate_agent(env, agent, seeds, max_steps):
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compara agentes bajo el mismo protocolo.")
     parser.add_argument("--episodes", type=int, default=20)
-    parser.add_argument("--max-steps", type=int, default=1000, help="tope de colocaciones por partida")
+    parser.add_argument("--max-steps", type=int, default=5000, help="tope de colocaciones por partida")
     parser.add_argument("--seed-base", type=int, default=0)
     args = parser.parse_args()
 

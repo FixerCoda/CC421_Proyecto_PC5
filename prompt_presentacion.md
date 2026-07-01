@@ -55,17 +55,19 @@ Genera el contenido siguiendo exactamente esta estructura. Para cada diapositiva
 *   **Clave de robustez:** Uso de ruido decreciente y evaluación justa mediante *Common Random Numbers* (mismas semillas).
 *   **Detalle Visual Exigido:** Una distribución normal $\mathcal{N}(\mu, \Sigma)$ con el percentil superior (la élite $\mathcal{E}$) sombreado. Una flecha indicando el desplazamiento de $\mu$ hacia dicha élite. Incluir la restricción de calibración final del modelo: normalización estricta $\lVert w \rVert = 1$.
 
-### Diapositiva 6: Comparación de Desempeño
-*   **El concepto:** Evaluación empírica de agentes bajo protocolo estricto (1000 pasos máximos).
-*   **Los datos a mostrar:**
-    *   Aleatorio: 0
-    *   Heurístico: 184 ($\pm 113$)
-    *   TD(0): 338 ($\pm 88$)
-    *   **CEM: 371 ($\pm 50$)**
-*   **Conclusión:** CEM logra un desempeño ligeramente superior, reduce significativamente la varianza y mantiene un vector de pesos acotado ($||w|| = 1$).
-*   **Detalle Visual Exigido:** Gráfico de barras minimalista mostrando las medias ($184$, $338$, $371$) con barras de error estándar ($\pm 113$, $\pm 88$, $\pm 50$). Destacar la métrica del agente CEM.
+### Diapositiva 6: La Ilusión del Corto Plazo (Evaluación a 1000 pasos)
+*   **El concepto:** Bajo un horizonte artificial estricto (1000 colocaciones), el rendimiento de ambos agentes entrenados parece similar.
+*   **Los datos a mostrar:** Aleatorio: 0 | Heurístico: 184 | TD(0): 338 | CEM: 371.
+*   **Conclusión Parcial:** Ocurre un "efecto techo". Ambos agentes logran sobrevivir el límite de los 1000 pasos; la métrica aquí solo está capturando ligeras variaciones en la eficiencia de empaquetado, no la capacidad real de supervivencia.
+*   **Detalle Visual Exigido:** Un gráfico de barras minimalista. La parte superior del gráfico debe estar visualmente seccionada o truncada por una línea punteada que diga "Límite artificial: 1000 pasos", mostrando cómo las barras de TD(0) y CEM "chocan" contra este techo.
 
-### Diapositiva 7: Conclusiones
+### Diapositiva 7: Desenmascarando la Inestabilidad (Evaluación a 5000 pasos)
+*   **El concepto:** Al extender el horizonte a 5000 colocaciones, se revela la verdadera fragilidad de la divergencia en TD(0). Los errores acumulados fuerzan un estado terminal prematuro, mientras CEM sostiene la supervivencia.
+*   **Los datos a mostrar:** TD(0): 563 ($\pm 341$, máx. 1441) | CEM: 1048 ($\pm 679$, máx. 1999).
+*   **El remate analítico:** La factura matemática del método semi-gradiente. $||w||_{TD} = 152,514.1$ frente a la estabilidad garantizada de $||w||_{CEM} = 1.0$.
+*   **Detalle Visual Exigido:** Un nuevo gráfico de barras, ahora sin techo, mostrando cómo la barra de CEM duplica a la de TD(0). En un espacio destacado al lado, contrastar tipográficamente las normas: un enorme "$||w||_{TD} \approx 1.5 \times 10^5$" en rojo o tono de alerta, contra un elegante "$||w||_{CEM} = 1.0$" en el color principal de la presentación.
+
+### Diapositiva 8: Conclusiones
 *   **El concepto:** Cierre de la presentación.
 *   **Mensaje:** Una representación matemática compacta acoplada al método de optimización adecuado constituye una alternativa efectiva a los métodos masivos en problemas de alta complejidad.
 *   **Detalle Visual Exigido:** Fondo oscuro, texto en fuente sans-serif geométrica en el centro, y una figura sutil (por ejemplo, el tetrominó "O" o "I") minimalista como marca de agua.
