@@ -2,67 +2,154 @@
 \section{Optimización: Cross-Entropy Method}
 \label{sec:cem}
 
-Optimizamos $\max_{w} J(w)$ con una familia de muestreo Gaussiana
-$g(w; \theta) = \mathcal{N}(w; \mu, \Sigma)$, con $\theta = (\mu, \Sigma)$.
+El objetivo de desempeño $J(w)$ es estocástico, constante a trozos y no
+diferenciable en $w$, e invariante a escala (Sección~\ref{sec:valor}); por ello los
+métodos de gradiente son inadecuados y se recurre a un optimizador estocástico sin
+derivadas. El Cross-Entropy Method (CEM) mantiene una \emph{distribución de muestreo}
+sobre el espacio de pesos y la concentra iterativamente en la región de mejor
+desempeño \citep{rubinstein1999, deboer2005}. Como familia de muestreo se toma una
+Gaussiana
+\begin{equation}
+  g(w; \theta) = \mathcal{N}(w; \mu, \Sigma), \qquad \theta = (\mu, \Sigma),
+  \label{eq:cem-familia}
+\end{equation}
+y en cada generación se busca el parámetro $\theta$ que mejor reproduce las muestras
+de mayor $J$.
 
-\subsection{Densidad objetivo y proyección por entropía cruzada}
-Para un nivel de desempeño $\lambda$, la densidad ideal concentra masa en la
-región élite:
-\[
-  q_{\lambda}(w) \propto \mathbf{1}\{J(w) \ge \lambda\}\, g(w; \theta).
-\]
-Buscamos $\theta$ que minimice la divergencia de Kullback--Leibler (entropía
-cruzada) hacia $q_{\lambda}$:
-\[
+\subsection{Densidad objetivo}
+Fijado un nivel de desempeño $\lambda$, la densidad ideal es la que concentra toda su
+masa en la región élite $\{\, w : J(w) \ge \lambda \,\}$. Se obtiene al inclinar
+(\emph{tilt}) la densidad actual $g(\cdot; \theta_{t})$ con el indicador del nivel y
+renormalizar:
+\begin{equation}
+  q_{\lambda}(w)
+  = \frac{\mathbf{1}\{J(w) \ge \lambda\}\, g(w; \theta_{t})}
+         {\mathbb{P}_{\theta_{t}}\!\big(J(w) \ge \lambda\big)}
+  \;\propto\; \mathbf{1}\{J(w) \ge \lambda\}\, g(w; \theta_{t}).
+  \label{eq:cem-target}
+\end{equation}
+Esta $q_{\lambda}$ es la densidad de muestreo por importancia óptima para el evento
+$\{J \ge \lambda\}$: muestrear de ella produciría directamente candidatos élite
+\citep{rubinstein1999}. Como $q_{\lambda}$ no pertenece en general a la familia
+Gaussiana, se la aproxima por su proyección dentro de la familia.
+
+\subsection{Proyección por entropía cruzada}
+Se elige el $\theta$ que minimiza la divergencia de Kullback--Leibler (equivalente a
+minimizar la entropía cruzada) de $q_{\lambda}$ hacia $g(\cdot; \theta)$. Desarrollando
+la divergencia,
+\begin{equation}
+  D_{\mathrm{KL}}\!\big(q_{\lambda} \,\|\, g(\cdot; \theta)\big)
+  = \mathbb{E}_{q_{\lambda}}\!\left[\log \frac{q_{\lambda}(w)}{g(w; \theta)}\right]
+  = \underbrace{\mathbb{E}_{q_{\lambda}}\!\left[\log q_{\lambda}(w)\right]}_{\text{independiente de }\theta}
+    - \mathbb{E}_{q_{\lambda}}\!\left[\log g(w; \theta)\right],
+  \label{eq:cem-kl}
+\end{equation}
+el primer término no depende de $\theta$, de modo que
+\begin{equation}
   \theta^{*}
   = \arg\min_{\theta} D_{\mathrm{KL}}\!\big(q_{\lambda} \,\|\, g(\cdot; \theta)\big)
   = \arg\max_{\theta} \mathbb{E}_{q_{\lambda}}\!\left[\log g(w; \theta)\right].
-\]
-Con muestras $w_{1}, \dots, w_{N} \sim g(\cdot; \theta_{t})$ y nivel adaptativo
-$\lambda_{t}$ igual al cuantil $(1-\rho)$ de $\{J(w_{i})\}$, el conjunto élite es
-$\mathcal{E}_{t} = \{w_{i} : J(w_{i}) \ge \lambda_{t}\}$, con
-$|\mathcal{E}_{t}| = \lceil \rho N \rceil$.
+  \label{eq:cem-proj}
+\end{equation}
+Sustituyendo la densidad objetivo \eqref{eq:cem-target}, la esperanza bajo
+$q_{\lambda}$ se reescribe como una esperanza bajo la densidad de muestreo
+$g(\cdot; \theta_{t})$:
+\begin{equation}
+  \mathbb{E}_{q_{\lambda}}\!\left[\log g(w; \theta)\right]
+  = \frac{1}{\mathbb{P}_{\theta_{t}}(J \ge \lambda)}\,
+    \mathbb{E}_{w \sim g(\cdot; \theta_{t})}\!\big[\mathbf{1}\{J(w) \ge \lambda\}\,\log g(w; \theta)\big],
+  \label{eq:cem-is}
+\end{equation}
+donde el factor $1/\mathbb{P}_{\theta_{t}}(J \ge \lambda)$ es constante en $\theta$ y
+no altera el $\arg\max$. La \emph{contraparte estocástica} de \eqref{eq:cem-is}
+reemplaza la esperanza por el promedio sobre $N$ muestras
+$w_{1}, \dots, w_{N} \sim g(\cdot; \theta_{t})$:
+\begin{equation}
+  \theta_{t+1}
+  = \arg\max_{\theta} \frac{1}{N} \sum_{i=1}^{N}
+    \mathbf{1}\{J(w_{i}) \ge \lambda_{t}\}\, \log g(w_{i}; \theta),
+  \label{eq:cem-stoch}
+\end{equation}
+que es un ajuste por máxima verosimilitud restringido al conjunto élite
+\citep{deboer2005}. El nivel $\lambda_{t}$ se fija de forma adaptativa como el cuantil
+$(1-\rho)$ empírico de $\{J(w_{i})\}$, con lo que el conjunto élite
+\begin{equation}
+  \mathcal{E}_{t} = \{\, w_{i} : J(w_{i}) \ge \lambda_{t} \,\},
+  \qquad |\mathcal{E}_{t}| = \lceil \rho N \rceil,
+  \label{eq:cem-elite}
+\end{equation}
+reúne la fracción superior $\rho \in (0,1)$ de los candidatos.
 
 \subsection{Solución en forma cerrada}
-El paso de maximización es un ajuste Gaussiano por máxima verosimilitud sobre
-los élites. Partiendo de
-$\log \mathcal{N}(w; \mu, \Sigma)
- = -\tfrac{1}{2}\log|2\pi\Sigma| - \tfrac{1}{2}(w-\mu)^{\top}\Sigma^{-1}(w-\mu)$
-y anulando las derivadas,
+Para la familia Gaussiana, el problema \eqref{eq:cem-stoch} tiene solución explícita:
+el estimador de máxima verosimilitud de una Gaussiana ajustada a los élites. Partiendo
+de la log-densidad
+\begin{equation}
+  \log \mathcal{N}(w; \mu, \Sigma)
+  = -\tfrac{1}{2}\log\lvert 2\pi\Sigma\rvert
+    - \tfrac{1}{2}(w-\mu)^{\top}\Sigma^{-1}(w-\mu),
+  \label{eq:cem-loggauss}
+\end{equation}
+y empleando las identidades de derivación matricial
+$\partial\big[(w-\mu)^{\top}\Sigma^{-1}(w-\mu)\big]/\partial \mu = -2\,\Sigma^{-1}(w-\mu)$,
+$\partial \log\lvert\Sigma^{-1}\rvert/\partial \Sigma^{-1} = \Sigma$ y
+$\partial\big[(w-\mu)^{\top}\Sigma^{-1}(w-\mu)\big]/\partial \Sigma^{-1} = (w-\mu)(w-\mu)^{\top}$,
+al anular las derivadas de $\sum_{w \in \mathcal{E}} \log \mathcal{N}$ se obtiene
 \begin{align}
   \frac{\partial}{\partial \mu} \sum_{w \in \mathcal{E}} \log \mathcal{N}
     &= \Sigma^{-1} \sum_{w \in \mathcal{E}} (w - \mu) = 0
     &&\Rightarrow&
-    \mu^{*} &= \frac{1}{|\mathcal{E}|} \sum_{w \in \mathcal{E}} w, \\
+    \mu^{*} &= \frac{1}{|\mathcal{E}|} \sum_{w \in \mathcal{E}} w,
+    \label{eq:cem-mu} \\
   \frac{\partial}{\partial \Sigma^{-1}} \sum_{w \in \mathcal{E}} \log \mathcal{N}
     &= \frac{|\mathcal{E}|}{2}\Sigma
        - \frac{1}{2}\sum_{w \in \mathcal{E}}(w-\mu^{*})(w-\mu^{*})^{\top} = 0
     &&\Rightarrow&
     \Sigma^{*} &= \frac{1}{|\mathcal{E}|}
       \sum_{w \in \mathcal{E}} (w-\mu^{*})(w-\mu^{*})^{\top}.
+    \label{eq:cem-sigma}
 \end{align}
-La actualización que minimiza la entropía cruzada es, pues, la media y la
-covarianza empíricas del conjunto élite. En la práctica se usa
-$\Sigma = \mathrm{diag}(\sigma_{1}^{2}, \dots, \sigma_{d}^{2})$ por eficiencia.
+La actualización que minimiza la entropía cruzada es, por tanto, la media
+\eqref{eq:cem-mu} y la covarianza \eqref{eq:cem-sigma} empíricas del conjunto élite
+\citep{deboer2005}. En la práctica se restringe a covarianza diagonal
+$\Sigma = \mathrm{diag}(\sigma_{1}^{2}, \dots, \sigma_{d}^{2})$, lo que reduce los
+parámetros a estimar de $\mathcal{O}(d^{2})$ a $\mathcal{O}(d)$ y evita ajustar
+covarianzas cruzadas con pocos élites.
 
 \subsection{Inyección de ruido y evaluación Monte Carlo}
-El CEM puro hace $\Sigma_{t} \to 0$ y colapsa a un óptimo local; para mantener
-exploración se añade ruido decreciente:
-\[
-  \Sigma_{t+1} \leftarrow \Sigma^{*} + Z_{t} I,
-  \qquad Z_{t} = \max\!\big(0,\; a - t/b\big).
-\]
-Cada $J(w_{i})$ se estima por Monte Carlo sobre $m$ episodios,
-$\hat{J}(w_{i}) = \tfrac{1}{m} \sum_{k=1}^{m} G^{(k)}(w_{i})$, con
-$\mathrm{Var}[\hat{J}] \propto 1/m$ \citep{rubinstein1999, szita2006}.
+La recursión \eqref{eq:cem-sigma} es contractiva: sin intervención,
+$\Sigma_{t} \to 0$ y la distribución colapsa prematuramente a un óptimo local. Para
+sostener la exploración se suma un ruido decreciente a la diagonal \citep{szita2006}:
+\begin{equation}
+  \Sigma_{t+1} \leftarrow \Sigma^{*} + Z_{t}\, I,
+  \qquad Z_{t} = \max\!\big(0,\; a - t/b\big),
+  \label{eq:cem-ruido}
+\end{equation}
+con $a, b > 0$; el ruido es grande al inicio (exploración) y se apaga al avanzar las
+generaciones (explotación). Szita y Lőrincz \citeyearpar{szita2006} muestran que esta
+variante ``ruidosa'' eleva el desempeño en Tetris en varios órdenes de magnitud frente
+al CEM puro.
+
+Además, $J(w_{i})$ no se conoce en forma cerrada: es una esperanza sobre secuencias
+aleatorias de piezas (Sección~\ref{sec:valor}) que se estima por Monte Carlo con $m$
+episodios,
+\begin{equation}
+  \hat{J}(w_{i}) = \frac{1}{m} \sum_{k=1}^{m} G^{(k)}(w_{i}),
+  \qquad
+  \mathrm{Var}\big[\hat{J}(w_{i})\big] = \frac{\mathrm{Var}[G]}{m},
+  \label{eq:cem-mc}
+\end{equation}
+de modo que promediar más episodios reduce la varianza de la estimación a razón $1/m$
+\citep{rubinstein1999}. La selección élite \eqref{eq:cem-elite} usa $\hat{J}$ en lugar
+de $J$.
 
 \subsection{Implementación}
-En este trabajo se emplea covarianza diagonal y el ruido decrece de forma lineal,
-$Z_{t} = c\,(1 - t/T)$, con $T$ el número de generaciones. La evaluación de cada
-candidato usa un \emph{tope de colocaciones} por partida (una buena política juega
-partidas casi ilimitadas) y \emph{números aleatorios comunes}: todos los candidatos
-de una misma generación se evalúan con las mismas semillas de partida, lo que
-reduce la varianza de la comparación. El vector final se normaliza a
-$\lVert w \rVert = 1$; al ser la política invariante a escala, esto no altera el
-desempeño pero mantiene los pesos acotados, en contraste con la divergencia de
-magnitud observada en TD (Sección~\ref{sec:td}).
+En este trabajo se emplea covarianza diagonal y el ruido \eqref{eq:cem-ruido} decrece
+de forma lineal, $Z_{t} = c\,(1 - t/T)$, con $T$ el número de generaciones. La
+evaluación de cada candidato usa un \emph{tope de colocaciones} por partida (una buena
+política juega partidas casi ilimitadas) y \emph{números aleatorios comunes}: todos los
+candidatos de una misma generación se evalúan con las mismas semillas de partida, lo
+que reduce la varianza de la comparación entre ellos. El vector final se normaliza a
+$\lVert w \rVert = 1$; al ser la política invariante a escala (Sección~\ref{sec:valor}),
+esto no altera el desempeño pero mantiene los pesos acotados, en contraste con la
+divergencia de magnitud observada en TD (Sección~\ref{sec:td}).
